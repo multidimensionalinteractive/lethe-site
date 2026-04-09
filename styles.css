@@ -3,19 +3,23 @@
    Art Basel-Inspired Dark Gallery Aesthetic
    ============================================ */
 
-/* CSS Custom Properties */
+/* CSS Custom Properties - COLORFUL VERSION for Chanel */
 :root {
-    /* Foundation */
-    --color-background: #0a0a0a;
-    --color-background-secondary: #111111;
-    --color-background-tertiary: #1a1a1a;
+    /* Foundation - Lighter, more colorful */
+    --color-background: #1a1520;           /* Deep plum/purple instead of black */
+    --color-background-secondary: #2d1f3d; /* Rich purple */
+    --color-background-tertiary: #3d2a52;  /* Brighter purple */
     
-    /* Jewel Tone Accents */
-    --color-jewel-red: #8B2635;          /* Desaturated blood red */
-    --color-jewel-blue: #2C3E50;         /* Cold steel blue */
-    --color-jewel-purple: #4A235A;       /* Bruised purple */
-    --color-jewel-gold: #8B7355;         /* Antique gold/ochre */
-    --color-jewel-emerald: #1D4D4F;      /* Forest green */
+    /* Jewel Tone Accents - MORE COLORFUL */
+    --color-jewel-red: #E74C3C;            /* Vibrant crimson red */
+    --color-jewel-blue: #3498DB;           /* Bright steel blue */
+    --color-jewel-purple: #9B59B6;         /* Vibrant purple */
+    --color-jewel-gold: #F1C40F;           /* Bright gold */
+    --color-jewel-emerald: #2ECC71;        /* Vibrant emerald green */
+    --color-jewel-coral: #FF6B6B;          /* NEW: Coral pink */
+    --color-jewel-teal: #1ABC9C;           /* NEW: Teal */
+    --color-jewel-pink: #E91E63;           /* NEW: Hot pink */
+    --color-jewel-lavender: #B39DDB;       /* NEW: Lavender */
     
     /* Typography */
     --font-display: 'Cormorant Garamond', Georgia, serif;
