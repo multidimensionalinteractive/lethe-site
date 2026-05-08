@@ -1,0 +1,79 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+
+const { applyProposalToFiles, buildPreviewHtml, extractJsonObject, summarizeOperations } = require("./proposal-engine");
+
+test("extractJsonObject parses fenced proposal JSON", () => {
+    const parsed = extractJsonObject("Sure.\n```json\n{\"summary\":\"Change hero\",\"operations\":[]}\n```");
+    assert.equal(parsed.summary, "Change hero");
+});
+
+test("applyProposalToFiles applies exact replacements and image swaps", () => {
+    const files = {
+        "index.html": '<p>The Eastern Front never closed.</p><img src="assets/viktor.jpg">',
+        "styles.css": "body { color: white; }"
+    };
+    const proposal = {
+        summary: "Adjust text and image",
+        operations: [
+            {
+                type: "replace_text",
+                file: "index.html",
+                find: "The Eastern Front never closed.",
+                replace: "The front has never closed."
+            },
+            {
+                type: "replace_image",
+                file: "index.html",
+                currentSrc: "assets/viktor.jpg",
+                newSrc: "assets/favicon-lethe.jpg"
+            }
+        ]
+    };
+
+    const result = applyProposalToFiles(files, proposal);
+    assert.equal(result.files["index.html"], '<p>The front has never closed.</p><img src="assets/favicon-lethe.jpg">');
+    assert.equal(result.changedFiles.length, 1);
+});
+
+test("applyProposalToFiles rejects operations outside editable files", () => {
+    assert.throws(
+        () => applyProposalToFiles({ "index.html": "x" }, {
+            operations: [{ type: "replace_text", file: "server.js", find: "x", replace: "y" }]
+        }),
+        /not editable/
+    );
+});
+
+test("applyProposalToFiles rejects image swaps to unavailable assets", () => {
+    assert.throws(
+        () => applyProposalToFiles(
+            { "index.html": '<img src="assets/current.jpg">' },
+            { operations: [{ type: "replace_image", file: "index.html", currentSrc: "assets/current.jpg", newSrc: "assets/missing.jpg" }] },
+            { allowedAssets: ["assets/current.jpg"] }
+        ),
+        /unavailable asset/
+    );
+});
+
+test("summarizeOperations creates concise labels", () => {
+    const summary = summarizeOperations([
+        { type: "replace_text", file: "index.html", find: "old text that is long", replace: "new text" },
+        { type: "replace_image", file: "index.html", currentSrc: "a.jpg", newSrc: "b.jpg" }
+    ]);
+
+    assert.deepEqual(summary, [
+        "Replace text in index.html: old text that is long",
+        "Swap image in index.html: a.jpg -> b.jpg"
+    ]);
+});
+
+test("buildPreviewHtml injects base and inline styles", () => {
+    const preview = buildPreviewHtml({
+        "index.html": '<!doctype html><html><head><link rel="stylesheet" href="styles.css"></head><body>Hi</body></html>',
+        "styles.css": "body { color: red; }"
+    });
+
+    assert.match(preview, /<base href="https:\/\/youarestillinsideit.com\/">/);
+    assert.match(preview, /<style>\nbody \{ color: red; \}\n<\/style>/);
+});

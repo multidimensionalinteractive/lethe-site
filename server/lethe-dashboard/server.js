@@ -5,17 +5,28 @@ const { execFile } = require("node:child_process");
 const { promisify } = require("node:util");
 
 const { applyExactReplacement, validatePushPayload } = require("./exact-edit");
+const {
+    applyProposalToFiles,
+    buildPreviewHtml,
+    createProposalId,
+    extractJsonObject,
+    summarizeOperations
+} = require("./proposal-engine");
 
 const PORT = Number(process.env.PORT || 8787);
 const ACCESS_CODE = process.env.LETHE_DASHBOARD_ACCESS || "";
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://127.0.0.1:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "gemma3:4b";
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5.1";
+const OPENAI_REASONING_EFFORT = process.env.OPENAI_REASONING_EFFORT || "low";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || "";
 const REPO_URL = process.env.LETHE_REPO_URL || "https://github.com/multidimensionalinteractive/lethe-site.git";
 const WORKTREE = process.env.LETHE_WORKTREE || "/opt/lethe-site-work";
 const REPO_BRANCH = process.env.LETHE_REPO_BRANCH || "master";
 const VISITS_FILE = process.env.LETHE_VISITS_FILE || "/var/lib/lethe-dashboard/visits.jsonl";
 const COUNTRY_CACHE_FILE = process.env.LETHE_COUNTRY_CACHE_FILE || "/var/lib/lethe-dashboard/country-cache.json";
+const PROPOSALS_DIR = process.env.LETHE_PROPOSALS_DIR || "/var/lib/lethe-dashboard/proposals";
 const ALLOWED_ORIGINS = new Set([
     "https://youarestillinsideit.com",
     "https://www.youarestillinsideit.com",
@@ -36,8 +47,7 @@ Your role:
 - Do not claim you directly changed the live site.
 - Speak directly to Chanel, not to Matt.
 - Do not invent current images, sections, or facts. If you are unsure what is currently on the page, say what you would check and give a conditional suggestion.
-- When a request is ready for implementation, summarize exact changes Matt/Codex should apply.
-- If Chanel wants to push live, tell her to use the Push Live panel with exact text to replace and exact replacement text.
+- When a request is ready for implementation, tell Chanel to use Generate Preview, review the page preview, and then use Push Preview Live if it looks right.
 - Keep the tone warm, direct, and art-literate. Avoid generic marketing language.`;
 
 function sendJson(response, status, payload, origin) {
@@ -99,6 +109,73 @@ async function askOllama(messages) {
     return data?.message?.content?.trim() || "I could not form a reply from the local model.";
 }
 
+async function askOpenAI(messages) {
+    const input = [
+        {
+            role: "system",
+            content: systemPrompt
+        },
+        ...messages.map((message) => ({
+            role: message.role,
+            content: message.content
+        }))
+    ];
+
+    const response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${OPENAI_API_KEY}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            model: OPENAI_MODEL,
+            reasoning: {
+                effort: OPENAI_REASONING_EFFORT
+            },
+            input
+        })
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        throw new Error(data?.error?.message || `OpenAI model error (${response.status}).`);
+    }
+
+    if (typeof data.output_text === "string" && data.output_text.trim()) {
+        return data.output_text.trim();
+    }
+
+    const textParts = [];
+    for (const item of data.output || []) {
+        if (item.type === "message") {
+            for (const content of item.content || []) {
+                if (content.type === "output_text" && content.text) {
+                    textParts.push(content.text);
+                }
+            }
+        }
+    }
+
+    return textParts.join("\n").trim() || "I could not form a reply from the OpenAI model.";
+}
+
+async function askAssistant(messages) {
+    if (OPENAI_API_KEY) {
+        return askOpenAI(messages);
+    }
+
+    return askOllama(messages);
+}
+
+async function readEditableFilesFromWorktree() {
+    await ensureWorktree();
+    return {
+        "index.html": await fs.readFile(path.join(WORKTREE, "index.html"), "utf8"),
+        "styles.css": await fs.readFile(path.join(WORKTREE, "styles.css"), "utf8"),
+        "script.js": await fs.readFile(path.join(WORKTREE, "script.js"), "utf8")
+    };
+}
+
 function runGit(args, options = {}) {
     return promisify(execFile)("git", args, {
         cwd: options.cwd,
@@ -155,6 +232,128 @@ async function pushExactEdit(payload) {
         replacements: result.replacements,
         commit: commit.stdout.trim(),
         message: edit.message
+    };
+}
+
+async function writeProposal(proposalRecord) {
+    await fs.mkdir(PROPOSALS_DIR, { recursive: true });
+    await fs.writeFile(
+        path.join(PROPOSALS_DIR, `${proposalRecord.id}.json`),
+        JSON.stringify(proposalRecord, null, 2)
+    );
+}
+
+async function readProposal(id) {
+    const safeId = String(id || "").replace(/[^a-f0-9]/g, "");
+    if (!safeId) throw new Error("Proposal ID is required.");
+    return JSON.parse(await fs.readFile(path.join(PROPOSALS_DIR, `${safeId}.json`), "utf8"));
+}
+
+async function generateProposal(payload) {
+    const request = String(payload?.request || "").trim();
+    if (!request) throw new Error("Describe the change first.");
+
+    const files = await readEditableFilesFromWorktree();
+    const assets = await fs.readdir(path.join(WORKTREE, "assets")).catch(() => []);
+    const assetPaths = assets.map((asset) => `assets/${asset}`);
+    const currentImageRefs = [...files["index.html"].matchAll(/(?:src|href)="(assets\/[^"]+)"/g)]
+        .map((match) => match[1])
+        .filter((src, index, list) => list.indexOf(src) === index);
+    const currentText = [
+        "Hero subtitle: THE FRONT IS FORMING.",
+        "Hero title: YOU ARE STILL INSIDE IT",
+        "Hero tagline: — LETHE —",
+        "Opening: The Eastern Front never closed.",
+        "Opening detail: We live inside its elements still — a sealed historical interior, a parallel psychic architecture.",
+        "Contact heading: IF THE PULL IS FAMILIAR",
+        "Contact subtext: For private views and correspondence.",
+        "Contact email: feldpost@youarestillinsideit.com",
+        "Footer year: — 2026 —"
+    ].join("\n");
+    const prompt = [
+        {
+            role: "user",
+            content: `Create a safe website edit proposal for Chanel's static LETHE site.
+
+Return ONLY JSON, no markdown. Schema:
+{
+  "summary": "short human summary",
+  "commitMessage": "short git commit message",
+  "operations": [
+    {"type":"replace_text","file":"index.html","find":"exact existing text","replace":"new text"},
+    {"type":"replace_image","file":"index.html","currentSrc":"assets/current.jpg","newSrc":"assets/existing-asset.jpg"}
+  ]
+}
+
+Rules:
+- Only edit index.html, styles.css, or script.js.
+- Use exact existing snippets from the current files.
+- For images, current page references are: ${currentImageRefs.join(", ") || "none"}.
+- For images, only choose from existing assets. Available assets: ${assetPaths.join(", ")}.
+- Prefer 1 to 3 operations.
+- If the request is vague, make the smallest tasteful change.
+- Do not invent new uploaded image files.
+- For text changes, use one of the exact current text strings listed below as "find".
+
+Current editable text:
+${currentText}
+
+Chanel's request:
+${request}`
+        }
+    ];
+
+    const raw = await askAssistant(prompt);
+    const proposal = extractJsonObject(raw);
+    const applied = applyProposalToFiles(files, proposal, { allowedAssets: assetPaths });
+    const id = createProposalId();
+    const record = {
+        id,
+        createdAt: new Date().toISOString(),
+        request,
+        summary: String(proposal.summary || "Site edit proposal").slice(0, 300),
+        commitMessage: String(proposal.commitMessage || "Update Lethe site").slice(0, 120),
+        operations: applied.operations,
+        operationSummary: summarizeOperations(applied.operations),
+        changedFiles: applied.changedFiles,
+        files: applied.files,
+        previewHtml: buildPreviewHtml(applied.files)
+    };
+
+    await writeProposal(record);
+    return {
+        id: record.id,
+        summary: record.summary,
+        commitMessage: record.commitMessage,
+        operations: record.operationSummary,
+        changedFiles: record.changedFiles,
+        previewHtml: record.previewHtml
+    };
+}
+
+async function pushProposal(payload) {
+    const proposal = await readProposal(payload?.proposalId);
+    await ensureWorktree();
+
+    for (const file of proposal.changedFiles) {
+        await fs.writeFile(path.join(WORKTREE, file), proposal.files[file]);
+    }
+
+    const status = await runGit(["status", "--porcelain", "--", ...proposal.changedFiles], { cwd: WORKTREE });
+    if (!status.stdout.trim()) {
+        throw new Error("Proposal produced no file changes.");
+    }
+
+    await runGit(["add", ...proposal.changedFiles], { cwd: WORKTREE });
+    await runGit(["commit", "-m", proposal.commitMessage || "Update Lethe site"], { cwd: WORKTREE });
+    const commit = await runGit(["rev-parse", "--short", "HEAD"], { cwd: WORKTREE });
+    await runGit(["push", "origin", REPO_BRANCH], { cwd: WORKTREE });
+
+    return {
+        ok: true,
+        proposalId: proposal.id,
+        commit: commit.stdout.trim(),
+        changedFiles: proposal.changedFiles
     };
 }
 
@@ -265,7 +464,12 @@ const server = http.createServer(async (request, response) => {
     }
 
     if (request.url === "/health" && request.method === "GET") {
-        return sendJson(response, 200, { ok: true, model: OLLAMA_MODEL }, allowedOrigin);
+        return sendJson(response, 200, {
+            ok: true,
+            provider: OPENAI_API_KEY ? "openai" : "ollama",
+            model: OPENAI_API_KEY ? OPENAI_MODEL : OLLAMA_MODEL,
+            reasoningEffort: OPENAI_API_KEY ? OPENAI_REASONING_EFFORT : null
+        }, allowedOrigin);
     }
 
     if (request.url === "/api/visits" && request.method === "GET") {
@@ -289,7 +493,7 @@ const server = http.createServer(async (request, response) => {
         }
     }
 
-    if (!["/api/chat", "/api/push-live"].includes(request.url) || request.method !== "POST") {
+    if (!["/api/chat", "/api/push-live", "/api/propose", "/api/push-proposal"].includes(request.url) || request.method !== "POST") {
         return sendJson(response, 404, { error: "Not found." }, allowedOrigin);
     }
 
@@ -306,12 +510,20 @@ const server = http.createServer(async (request, response) => {
             return sendJson(response, 200, result, allowedOrigin);
         }
 
+        if (request.url === "/api/propose") {
+            return sendJson(response, 200, await generateProposal(payload), allowedOrigin);
+        }
+
+        if (request.url === "/api/push-proposal") {
+            return sendJson(response, 200, await pushProposal(payload), allowedOrigin);
+        }
+
         const messages = normalizeMessages(payload.messages);
         if (!messages.length) {
             return sendJson(response, 400, { error: "Send a message first." }, allowedOrigin);
         }
 
-        const reply = await askOllama(messages);
+        const reply = await askAssistant(messages);
         return sendJson(response, 200, { reply }, allowedOrigin);
     } catch (error) {
         return sendJson(response, 500, { error: error.message || "The assistant failed to answer." }, allowedOrigin);

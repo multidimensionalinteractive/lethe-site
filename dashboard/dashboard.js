@@ -7,14 +7,11 @@ const accessRow = document.getElementById("access-row");
 const accessCode = document.getElementById("access-code");
 const saveCode = document.getElementById("save-code");
 const clearChat = document.getElementById("clear-chat");
-const pushForm = document.getElementById("push-form");
-const pushFile = document.getElementById("push-file");
-const pushFind = document.getElementById("push-find");
-const pushReplace = document.getElementById("push-replace");
-const pushMessage = document.getElementById("push-message");
-const pushConfirm = document.getElementById("push-confirm");
-const pushLive = document.getElementById("push-live");
+const generatePreview = document.getElementById("generate-preview");
+const pushProposal = document.getElementById("push-proposal");
 const pushStatus = document.getElementById("push-status");
+const proposalSummary = document.getElementById("proposal-summary");
+const proposalPreview = document.getElementById("proposal-preview");
 const refreshVisits = document.getElementById("refresh-visits");
 const visitsTotal = document.getElementById("visits-total");
 const visitsCountries = document.getElementById("visits-countries");
@@ -22,7 +19,9 @@ const countryList = document.getElementById("country-list");
 
 const state = {
     messages: [],
-    accessCode: sessionStorage.getItem("letheDashboardAccess") || ""
+    accessCode: sessionStorage.getItem("letheDashboardAccess") || "",
+    latestRequest: "",
+    proposalId: ""
 };
 
 if (state.accessCode) {
@@ -79,6 +78,7 @@ composer.addEventListener("submit", async (event) => {
     }
 
     promptEl.value = "";
+    state.latestRequest = prompt;
     addMessage("user", prompt);
     setBusy(true);
 
@@ -106,50 +106,86 @@ composer.addEventListener("submit", async (event) => {
     }
 });
 
-pushForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
+generatePreview.addEventListener("click", async () => {
     if (!state.accessCode) {
         setPushStatus("Enter the access code first.", "error");
         accessCode.focus();
         return;
     }
 
-    if (!pushConfirm.checked) {
-        setPushStatus("Confirm that you reviewed the replacement before pushing.", "error");
+    const request = state.latestRequest || promptEl.value.trim();
+    if (!request) {
+        setPushStatus("Send or type a change request first.", "error");
         return;
     }
 
-    pushLive.disabled = true;
-    setPushStatus("Pushing to GitHub. Hostinger will deploy after the commit...");
+    generatePreview.disabled = true;
+    pushProposal.disabled = true;
+    state.proposalId = "";
+    setPushStatus("Generating a preview from the latest request...");
 
     try {
-        const response = await fetch(`${API_BASE}/api/push-live`, {
+        const response = await fetch(`${API_BASE}/api/propose`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "X-Lethe-Access": state.accessCode
             },
-            body: JSON.stringify({
-                file: pushFile.value,
-                find: pushFind.value,
-                replace: pushReplace.value,
-                message: pushMessage.value
-            })
+            body: JSON.stringify({ request })
         });
 
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-            throw new Error(data.error || "Push failed.");
+            throw new Error(data.error || "Could not generate preview.");
         }
 
-        setPushStatus(`Live push started. Commit ${data.commit} replaces ${data.replacements} match in ${data.file}.`, "success");
-        addMessage("assistant", `I pushed that exact replacement live. Commit: ${data.commit}. Hostinger should deploy it in a moment.`);
-        pushConfirm.checked = false;
+        state.proposalId = data.id;
+        proposalSummary.innerHTML = "";
+        const heading = document.createElement("strong");
+        heading.textContent = data.summary;
+        const list = document.createElement("ul");
+        data.operations.forEach((operation) => {
+            const item = document.createElement("li");
+            item.textContent = operation;
+            list.appendChild(item);
+        });
+        proposalSummary.append(heading, list);
+        proposalPreview.srcdoc = data.previewHtml;
+        pushProposal.disabled = false;
+        setPushStatus("Preview ready. Review it, then push that exact draft live.", "success");
     } catch (error) {
         setPushStatus(error.message, "error");
     } finally {
-        pushLive.disabled = false;
+        generatePreview.disabled = false;
+    }
+});
+
+pushProposal.addEventListener("click", async () => {
+    if (!state.proposalId) {
+        setPushStatus("Generate a preview first.", "error");
+        return;
+    }
+
+    pushProposal.disabled = true;
+    setPushStatus("Committing the preview to GitHub...");
+
+    try {
+        const response = await fetch(`${API_BASE}/api/push-proposal`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Lethe-Access": state.accessCode
+            },
+            body: JSON.stringify({ proposalId: state.proposalId })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Push failed.");
+        setPushStatus(`Pushed preview live. Commit ${data.commit}. Hostinger will deploy it shortly.`, "success");
+        addMessage("assistant", `I pushed the reviewed preview live. Commit: ${data.commit}.`);
+        state.proposalId = "";
+    } catch (error) {
+        setPushStatus(error.message, "error");
+        pushProposal.disabled = false;
     }
 });
 

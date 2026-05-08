@@ -153,10 +153,7 @@ h2 {
 }
 
 .access-row input,
-.composer textarea,
-.push-form input,
-.push-form select,
-.push-form textarea {
+.composer textarea {
     width: 100%;
     color: var(--ink);
     background: var(--panel);
@@ -164,15 +161,12 @@ h2 {
     outline: none;
 }
 
-.access-row input,
-.push-form input,
-.push-form select {
+.access-row input {
     min-width: 0;
     padding: 0.9rem 1rem;
 }
 
-.composer textarea,
-.push-form textarea {
+.composer textarea {
     resize: vertical;
     min-height: 5.5rem;
     max-height: 14rem;
@@ -181,10 +175,7 @@ h2 {
 }
 
 .access-row input:focus,
-.composer textarea:focus,
-.push-form input:focus,
-.push-form select:focus,
-.push-form textarea:focus {
+.composer textarea:focus {
     border-color: var(--gold);
 }
 
@@ -242,42 +233,54 @@ button {
     margin-bottom: 0;
 }
 
-.push-panel {
+.proposal-panel {
     border: 1px solid rgba(241, 196, 15, 0.22);
     background: rgba(10, 8, 12, 0.36);
-}
-
-.push-panel summary {
-    cursor: pointer;
     padding: 1rem;
-    color: var(--gold);
-    font-family: var(--font-header);
-    font-size: 0.78rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
 }
 
-.push-form {
-    display: grid;
+.proposal-header,
+.proposal-actions {
+    display: flex;
+    justify-content: space-between;
     gap: 1rem;
-    padding: 0 1rem 1rem;
+    align-items: start;
 }
 
-.push-form label {
-    display: grid;
-    gap: 0.4rem;
+.proposal-header h3 {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 1.6rem;
+    font-weight: 400;
+}
+
+.proposal-copy,
+.proposal-summary {
     color: var(--muted);
     font-family: var(--font-ui);
-    font-size: 0.84rem;
+    font-size: 0.92rem;
+    line-height: 1.5;
 }
 
-.confirm-row {
-    grid-template-columns: auto 1fr;
+.proposal-summary {
+    margin: 1rem 0;
+}
+
+.proposal-summary ul {
+    margin: 0.5rem 0 0;
+    padding-left: 1.2rem;
+}
+
+.proposal-preview {
+    width: 100%;
+    height: min(68vh, 720px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #0a0a0a;
+}
+
+.proposal-actions {
+    margin-top: 1rem;
     align-items: center;
-}
-
-.confirm-row input {
-    width: auto;
 }
 
 .push-status {
@@ -364,7 +367,9 @@ button {
 
     .chat-header,
     .access-row,
-    .composer {
+    .composer,
+    .proposal-header,
+    .proposal-actions {
         flex-direction: column;
     }
 

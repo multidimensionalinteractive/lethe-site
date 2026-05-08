@@ -74,37 +74,22 @@
                 <button id="send" type="submit">Send</button>
             </form>
 
-            <details class="push-panel">
-                <summary>Push Live</summary>
-                <form id="push-form" class="push-form">
-                    <label>
-                        File
-                        <select id="push-file">
-                            <option value="index.html">index.html</option>
-                            <option value="styles.css">styles.css</option>
-                            <option value="script.js">script.js</option>
-                        </select>
-                    </label>
-                    <label>
-                        Exact text currently on the site
-                        <textarea id="push-find" rows="4" placeholder="Paste the exact current text here"></textarea>
-                    </label>
-                    <label>
-                        Replacement text
-                        <textarea id="push-replace" rows="4" placeholder="Paste the new text here"></textarea>
-                    </label>
-                    <label>
-                        Commit note
-                        <input id="push-message" type="text" placeholder="Update Lethe site copy">
-                    </label>
-                    <label class="confirm-row">
-                        <input id="push-confirm" type="checkbox">
-                        I reviewed this exact replacement and want to publish it.
-                    </label>
-                    <button id="push-live" type="submit">Push Live</button>
+            <section class="proposal-panel" aria-label="Generated site preview">
+                <div class="proposal-header">
+                    <div>
+                        <p class="eyebrow">PREVIEW</p>
+                        <h3>Generate the update first</h3>
+                    </div>
+                    <button class="ghost-button compact-button" id="generate-preview" type="button">Generate Preview</button>
+                </div>
+                <p class="proposal-copy">Use the latest chat request to draft an updated page. Review the preview, then push that exact draft live.</p>
+                <div class="proposal-summary" id="proposal-summary"></div>
+                <iframe class="proposal-preview" id="proposal-preview" title="Generated site preview"></iframe>
+                <div class="proposal-actions">
+                    <button id="push-proposal" type="button" disabled>Push Preview Live</button>
                     <p class="push-status" id="push-status"></p>
-                </form>
-            </details>
+                </div>
+            </section>
         </section>
     </main>
 
