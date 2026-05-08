@@ -15,6 +15,7 @@ const REPO_URL = process.env.LETHE_REPO_URL || "https://github.com/multidimensio
 const WORKTREE = process.env.LETHE_WORKTREE || "/opt/lethe-site-work";
 const REPO_BRANCH = process.env.LETHE_REPO_BRANCH || "master";
 const VISITS_FILE = process.env.LETHE_VISITS_FILE || "/var/lib/lethe-dashboard/visits.jsonl";
+const COUNTRY_CACHE_FILE = process.env.LETHE_COUNTRY_CACHE_FILE || "/var/lib/lethe-dashboard/country-cache.json";
 const ALLOWED_ORIGINS = new Set([
     "https://youarestillinsideit.com",
     "https://www.youarestillinsideit.com",
@@ -159,7 +160,7 @@ async function pushExactEdit(payload) {
 
 function getClientIp(request) {
     const forwarded = String(request.headers["x-forwarded-for"] || "").split(",")[0].trim();
-    return forwarded || request.socket.remoteAddress || "";
+    return (forwarded || request.socket.remoteAddress || "").replace(/^::ffff:/, "");
 }
 
 function getCountry(request) {
@@ -169,13 +170,56 @@ function getCountry(request) {
     return country && country !== "XX" ? country.toUpperCase() : "Unknown";
 }
 
+function isPublicIp(ip) {
+    if (!ip || ip === "::1" || ip === "127.0.0.1") return false;
+    if (/^(10|127)\./.test(ip)) return false;
+    if (/^192\.168\./.test(ip)) return false;
+    if (/^172\.(1[6-9]|2\d|3[0-1])\./.test(ip)) return false;
+    return /^\d{1,3}(\.\d{1,3}){3}$/.test(ip);
+}
+
+async function readCountryCache() {
+    try {
+        return JSON.parse(await fs.readFile(COUNTRY_CACHE_FILE, "utf8"));
+    } catch {
+        return {};
+    }
+}
+
+async function writeCountryCache(cache) {
+    await fs.mkdir(path.dirname(COUNTRY_CACHE_FILE), { recursive: true });
+    await fs.writeFile(COUNTRY_CACHE_FILE, JSON.stringify(cache, null, 2));
+}
+
+async function lookupCountry(ip, requestCountry) {
+    if (requestCountry !== "Unknown") return requestCountry;
+    if (!isPublicIp(ip)) return "Unknown";
+
+    const cacheKey = ip.replace(/(\d+\.\d+)\.\d+\.\d+$/, "$1.0.0");
+    const cache = await readCountryCache();
+    if (cache[cacheKey]) return cache[cacheKey];
+
+    try {
+        const response = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,countryCode`);
+        const data = await response.json();
+        const country = data?.status === "success" && data?.country ? data.country : "Unknown";
+        cache[cacheKey] = country;
+        await writeCountryCache(cache);
+        return country;
+    } catch {
+        return "Unknown";
+    }
+}
+
 async function trackVisit(request, payload) {
+    const ip = getClientIp(request);
+    const country = await lookupCountry(ip, getCountry(request));
     const entry = {
         ts: new Date().toISOString(),
-        country: getCountry(request),
+        country,
         path: String(payload?.path || "/").slice(0, 200),
         referrer: String(payload?.referrer || "").slice(0, 300),
-        ipPrefix: getClientIp(request).replace(/(\d+\.\d+)\.\d+\.\d+$/, "$1.0.0")
+        ipPrefix: ip.replace(/(\d+\.\d+)\.\d+\.\d+$/, "$1.0.0")
     };
 
     await fs.mkdir(path.dirname(VISITS_FILE), { recursive: true });
