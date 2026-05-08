@@ -1,0 +1,19 @@
+[Unit]
+Description=LETHE Dashboard Chat API
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/lethe-dashboard
+Environment=NODE_ENV=production
+Environment=PORT=8787
+Environment=OLLAMA_URL=http://127.0.0.1:11434
+Environment=OLLAMA_MODEL=gemma3:4b
+Environment=LETHE_DASHBOARD_ACCESS=rbGpdkrog8jO6dYhwAFfVIOb
+ExecStart=/usr/bin/node /opt/lethe-dashboard/server.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

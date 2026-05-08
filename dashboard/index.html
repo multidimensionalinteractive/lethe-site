@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LETHE Dashboard</title>
+    <link rel="icon" type="image/jpeg" href="../assets/favicon-lethe.jpg">
+    <link rel="apple-touch-icon" href="../assets/favicon-lethe.jpg">
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <main class="dashboard-shell">
+        <aside class="dashboard-panel">
+            <div>
+                <p class="eyebrow">LETHE FIELD CONSOLE</p>
+                <h1>Site edits with a quiet second mind.</h1>
+                <p class="panel-copy">Ask for copy changes, image placement, section ideas, or layout notes for You Are Still Inside It.</p>
+            </div>
+
+            <div class="status-card">
+                <span class="status-dot"></span>
+                <div>
+                    <p class="status-title">Drafting assistant</p>
+                    <p class="status-copy">Suggestions only for now. Matt can apply and deploy approved changes.</p>
+                </div>
+            </div>
+
+            <a class="site-link" href="/" aria-label="Return to site">Return to site</a>
+        </aside>
+
+        <section class="chat-panel" aria-label="LETHE editing chat">
+            <div class="chat-header">
+                <div>
+                    <p class="eyebrow">CORRESPONDENCE</p>
+                    <h2>Talk through a change</h2>
+                </div>
+                <button class="ghost-button" id="clear-chat" type="button">Clear</button>
+            </div>
+
+            <div class="access-row" id="access-row">
+                <input id="access-code" type="password" autocomplete="current-password" placeholder="Access code">
+                <button id="save-code" type="button">Unlock</button>
+            </div>
+
+            <div class="messages" id="messages" aria-live="polite">
+                <article class="message assistant">
+                    <p>Hi Chanel. Tell me what you want to change on the site, and I will help shape it into something Matt can apply cleanly.</p>
+                </article>
+            </div>
+
+            <form class="composer" id="composer">
+                <textarea id="prompt" rows="3" placeholder="Example: I want the opening image to feel less centered and more like an apparition..."></textarea>
+                <button id="send" type="submit">Send</button>
+            </form>
+        </section>
+    </main>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
