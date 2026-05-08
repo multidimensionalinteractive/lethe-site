@@ -48,6 +48,19 @@ function applyProposalToFiles(files, proposal, options = {}) {
             continue;
         }
 
+        if (operation.type === "insert_before_text" || operation.type === "insert_after_text") {
+            const anchor = String(operation.anchor || "");
+            const html = String(operation.html || "");
+            if (!anchor) throw new Error("Insert proposal is missing anchor text.");
+            if (!html) throw new Error("Insert proposal is missing HTML.");
+            const replacement = operation.type === "insert_before_text"
+                ? `${html}\n${anchor}`
+                : `${anchor}\n${html}`;
+            nextFiles[file] = replaceOnce(nextFiles[file], anchor, replacement);
+            changed.add(file);
+            continue;
+        }
+
         if (operation.type === "replace_image") {
             const currentSrc = String(operation.currentSrc || "");
             const newSrc = String(operation.newSrc || "");
@@ -70,15 +83,18 @@ function applyProposalToFiles(files, proposal, options = {}) {
     };
 }
 
-function buildPreviewHtml(files) {
+function buildPreviewHtml(files, options = {}) {
     const html = files["index.html"];
     const css = files["styles.css"];
     if (!html) throw new Error("Preview requires index.html.");
 
-    const withBase = html.replace("<head>", '<head>\n    <base href="https://youarestillinsideit.com/">');
-    if (!css) return withBase;
+    let preview = html.replace("<head>", '<head>\n    <base href="https://youarestillinsideit.com/">');
+    for (const [assetPath, dataUrl] of Object.entries(options.assetDataUrls || {})) {
+        preview = preview.replaceAll(assetPath, dataUrl);
+    }
+    if (!css) return preview;
 
-    return withBase.replace(
+    return preview.replace(
         /<link rel="stylesheet" href="styles\.css">/,
         `<style>\n${css}\n</style>`
     );
@@ -89,6 +105,12 @@ function summarizeOperations(operations) {
         const file = operation.file || "index.html";
         if (operation.type === "replace_image") {
             return `Swap image in ${file}: ${operation.currentSrc} -> ${operation.newSrc}`;
+        }
+        if (operation.type === "insert_before_text") {
+            return `Insert content before text in ${file}: ${String(operation.anchor || "").slice(0, 80)}`;
+        }
+        if (operation.type === "insert_after_text") {
+            return `Insert content after text in ${file}: ${String(operation.anchor || "").slice(0, 80)}`;
         }
         return `Replace text in ${file}: ${String(operation.find || "").slice(0, 80)}`;
     });

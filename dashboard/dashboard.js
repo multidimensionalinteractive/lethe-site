@@ -12,6 +12,8 @@ const pushProposal = document.getElementById("push-proposal");
 const pushStatus = document.getElementById("push-status");
 const proposalSummary = document.getElementById("proposal-summary");
 const proposalPreview = document.getElementById("proposal-preview");
+const imageUpload = document.getElementById("image-upload");
+const uploadPreview = document.getElementById("upload-preview");
 const refreshVisits = document.getElementById("refresh-visits");
 const visitsTotal = document.getElementById("visits-total");
 const visitsCountries = document.getElementById("visits-countries");
@@ -21,7 +23,8 @@ const state = {
     messages: [],
     accessCode: sessionStorage.getItem("letheDashboardAccess") || "",
     latestRequest: "",
-    proposalId: ""
+    proposalId: "",
+    uploadedImage: null
 };
 
 if (state.accessCode) {
@@ -52,6 +55,22 @@ function setPushStatus(text, type = "") {
     pushStatus.className = `push-status ${type}`.trim();
 }
 
+function renderUploadedImage() {
+    uploadPreview.innerHTML = "";
+    if (!state.uploadedImage) {
+        uploadPreview.hidden = true;
+        return;
+    }
+
+    const image = document.createElement("img");
+    image.src = state.uploadedImage.dataUrl;
+    image.alt = "";
+    const label = document.createElement("span");
+    label.textContent = `Attached: ${state.uploadedImage.name}`;
+    uploadPreview.append(image, label);
+    uploadPreview.hidden = false;
+}
+
 saveCode.addEventListener("click", () => {
     state.accessCode = accessCode.value.trim();
     if (!state.accessCode) return;
@@ -64,6 +83,42 @@ clearChat.addEventListener("click", () => {
     state.messages = [];
     messagesEl.innerHTML = "";
     addMessage("assistant", "Fresh page. What change should we shape next?");
+});
+
+imageUpload.addEventListener("change", () => {
+    const file = imageUpload.files[0];
+    state.uploadedImage = null;
+
+    if (!file) {
+        renderUploadedImage();
+        return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+        setPushStatus("Attach an image file: JPG, PNG, WEBP, or GIF.", "error");
+        imageUpload.value = "";
+        renderUploadedImage();
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        setPushStatus("Use an image under 5 MB for now.", "error");
+        imageUpload.value = "";
+        renderUploadedImage();
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+        state.uploadedImage = {
+            name: file.name,
+            type: file.type,
+            dataUrl: reader.result
+        };
+        renderUploadedImage();
+        setPushStatus("Image attached. Describe where it should go, then Generate Preview.", "success");
+    });
+    reader.readAsDataURL(file);
 });
 
 composer.addEventListener("submit", async (event) => {
@@ -132,7 +187,10 @@ generatePreview.addEventListener("click", async () => {
                 "Content-Type": "application/json",
                 "X-Lethe-Access": state.accessCode
             },
-            body: JSON.stringify({ request })
+            body: JSON.stringify({
+                request,
+                uploadedImage: state.uploadedImage
+            })
         });
 
         const data = await response.json().catch(() => ({}));

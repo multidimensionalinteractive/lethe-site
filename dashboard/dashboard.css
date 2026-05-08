@@ -179,6 +179,13 @@ h2 {
     line-height: 1.45;
 }
 
+.composer-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 0 0 12rem;
+}
+
 .access-row input:focus,
 .composer textarea:focus {
     border-color: var(--gold);
@@ -194,6 +201,42 @@ button {
     letter-spacing: 0.16em;
     text-transform: uppercase;
     padding: 0.9rem 1rem;
+}
+
+.upload-button {
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    cursor: pointer;
+    font-family: var(--font-header);
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    padding: 0.9rem 1rem;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+#image-upload {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.upload-preview {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+}
+
+.upload-preview img {
+    width: 4.5rem;
+    height: 4.5rem;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .ghost-button {
@@ -382,12 +425,17 @@ button {
     .chat-header,
     .access-row,
     .composer,
+    .composer-actions,
     .proposal-header,
     .proposal-actions {
         flex-direction: column;
     }
 
     button {
+        width: 100%;
+    }
+
+    .upload-button {
         width: 100%;
     }
 

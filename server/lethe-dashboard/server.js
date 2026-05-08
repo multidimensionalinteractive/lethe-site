@@ -66,7 +66,7 @@ function readBody(request) {
         let body = "";
         request.on("data", (chunk) => {
             body += chunk;
-            if (body.length > 64_000) {
+            if (body.length > 8_000_000) {
                 request.destroy();
                 reject(new Error("Request is too large."));
             }
@@ -249,13 +249,53 @@ async function readProposal(id) {
     return JSON.parse(await fs.readFile(path.join(PROPOSALS_DIR, `${safeId}.json`), "utf8"));
 }
 
+function prepareUploadedImage(uploadedImage) {
+    if (!uploadedImage) return null;
+
+    const name = String(uploadedImage.name || "upload").toLowerCase();
+    const type = String(uploadedImage.type || "");
+    const dataUrl = String(uploadedImage.dataUrl || "");
+    const extensionByType = {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
+        "image/gif": ".gif"
+    };
+    const extension = extensionByType[type] || path.extname(name).replace(/[^.\w]/g, "");
+
+    if (!extension || !Object.values(extensionByType).includes(extension)) {
+        throw new Error("Uploaded image must be JPG, PNG, WEBP, or GIF.");
+    }
+
+    const match = dataUrl.match(/^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/);
+    if (!match || match[1] !== type) {
+        throw new Error("Uploaded image data is invalid.");
+    }
+
+    const buffer = Buffer.from(match[2], "base64");
+    if (!buffer.length || buffer.length > 5 * 1024 * 1024) {
+        throw new Error("Uploaded image must be under 5 MB.");
+    }
+
+    const base = path.basename(name, path.extname(name)).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "upload";
+    const file = `assets/${Date.now()}-${base}${extension}`;
+    return {
+        file,
+        type,
+        dataUrl,
+        base64: buffer.toString("base64")
+    };
+}
+
 async function generateProposal(payload) {
     const request = String(payload?.request || "").trim();
     if (!request) throw new Error("Describe the change first.");
 
     const files = await readEditableFilesFromWorktree();
     const assets = await fs.readdir(path.join(WORKTREE, "assets")).catch(() => []);
+    const uploadedAsset = prepareUploadedImage(payload?.uploadedImage);
     const assetPaths = assets.map((asset) => `assets/${asset}`);
+    if (uploadedAsset) assetPaths.push(uploadedAsset.file);
     const currentImageRefs = [...files["index.html"].matchAll(/(?:src|href)="(assets\/[^"]+)"/g)]
         .map((match) => match[1])
         .filter((src, index, list) => list.indexOf(src) === index);
@@ -281,7 +321,9 @@ Return ONLY JSON, no markdown. Schema:
   "commitMessage": "short git commit message",
   "operations": [
     {"type":"replace_text","file":"index.html","find":"exact existing text","replace":"new text"},
-    {"type":"replace_image","file":"index.html","currentSrc":"assets/current.jpg","newSrc":"assets/existing-asset.jpg"}
+    {"type":"replace_image","file":"index.html","currentSrc":"assets/current.jpg","newSrc":"assets/existing-asset.jpg"},
+    {"type":"insert_before_text","file":"index.html","anchor":"exact existing text or HTML","html":"HTML to insert"},
+    {"type":"insert_after_text","file":"index.html","anchor":"exact existing text or HTML","html":"HTML to insert"}
   ]
 }
 
@@ -290,6 +332,11 @@ Rules:
 - Use exact existing snippets from the current files.
 - For images, current page references are: ${currentImageRefs.join(", ") || "none"}.
 - For images, only choose from existing assets. Available assets: ${assetPaths.join(", ")}.
+- Uploaded image for this request: ${uploadedAsset ? uploadedAsset.file : "none"}.
+- If Chanel asks to use the attached image, use the uploaded image path as the newSrc.
+- To place an uploaded image near a section, use insert_before_text or insert_after_text with clean figure HTML and one exact anchor from Useful HTML anchors.
+- If Chanel asks for an image below the hero or above the Eastern Front text, insert before the featured-artwork section anchor.
+- Do not insert content immediately after an opening section tag such as <section class="hero">.
 - Prefer 1 to 3 operations.
 - If the request is vague, make the smallest tasteful change.
 - Do not invent new uploaded image files.
@@ -297,6 +344,11 @@ Rules:
 
 Current editable text:
 ${currentText}
+
+Useful HTML anchors:
+${currentImageRefs.includes("assets/viktor.jpg") ? '<section class="featured-artwork" aria-label="Featured artwork">' : ""}
+<p class="chapter-text">The Eastern Front never closed.</p>
+<section class="newsletter" id="contact">
 
 Chanel's request:
 ${request}`
@@ -307,6 +359,7 @@ ${request}`
     const proposal = extractJsonObject(raw);
     const applied = applyProposalToFiles(files, proposal, { allowedAssets: assetPaths });
     const id = createProposalId();
+    const usedUploadedAsset = uploadedAsset && applied.files["index.html"].includes(uploadedAsset.file);
     const record = {
         id,
         createdAt: new Date().toISOString(),
@@ -316,8 +369,11 @@ ${request}`
         operations: applied.operations,
         operationSummary: summarizeOperations(applied.operations),
         changedFiles: applied.changedFiles,
+        assets: usedUploadedAsset ? [uploadedAsset] : [],
         files: applied.files,
-        previewHtml: buildPreviewHtml(applied.files)
+        previewHtml: buildPreviewHtml(applied.files, {
+            assetDataUrls: usedUploadedAsset ? { [uploadedAsset.file]: uploadedAsset.dataUrl } : {}
+        })
     };
 
     await writeProposal(record);
@@ -339,12 +395,18 @@ async function pushProposal(payload) {
         await fs.writeFile(path.join(WORKTREE, file), proposal.files[file]);
     }
 
-    const status = await runGit(["status", "--porcelain", "--", ...proposal.changedFiles], { cwd: WORKTREE });
+    for (const asset of proposal.assets || []) {
+        await fs.mkdir(path.dirname(path.join(WORKTREE, asset.file)), { recursive: true });
+        await fs.writeFile(path.join(WORKTREE, asset.file), Buffer.from(asset.base64, "base64"));
+    }
+
+    const proposalFiles = [...proposal.changedFiles, ...(proposal.assets || []).map((asset) => asset.file)];
+    const status = await runGit(["status", "--porcelain", "--", ...proposalFiles], { cwd: WORKTREE });
     if (!status.stdout.trim()) {
         throw new Error("Proposal produced no file changes.");
     }
 
-    await runGit(["add", ...proposal.changedFiles], { cwd: WORKTREE });
+    await runGit(["add", ...proposalFiles], { cwd: WORKTREE });
     await runGit(["commit", "-m", proposal.commitMessage || "Update Lethe site"], { cwd: WORKTREE });
     const commit = await runGit(["rev-parse", "--short", "HEAD"], { cwd: WORKTREE });
     await runGit(["push", "origin", REPO_BRANCH], { cwd: WORKTREE });
@@ -353,7 +415,7 @@ async function pushProposal(payload) {
         ok: true,
         proposalId: proposal.id,
         commit: commit.stdout.trim(),
-        changedFiles: proposal.changedFiles
+        changedFiles: proposalFiles
     };
 }
 

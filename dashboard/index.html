@@ -50,8 +50,13 @@
 
             <form class="composer" id="composer">
                 <textarea id="prompt" rows="3" placeholder="Example: I want the opening image to feel less centered and more like an apparition..."></textarea>
-                <button id="send" type="submit">Send</button>
+                <div class="composer-actions">
+                    <label class="upload-button" for="image-upload">Attach Image</label>
+                    <input id="image-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+                    <button id="send" type="submit">Send</button>
+                </div>
             </form>
+            <div class="upload-preview" id="upload-preview" hidden></div>
 
             <section class="proposal-panel" aria-label="Generated site preview">
                 <div class="proposal-header">

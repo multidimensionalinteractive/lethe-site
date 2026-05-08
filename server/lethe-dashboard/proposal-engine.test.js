@@ -56,15 +56,36 @@ test("applyProposalToFiles rejects image swaps to unavailable assets", () => {
     );
 });
 
+test("applyProposalToFiles inserts HTML around exact text anchors", () => {
+    const result = applyProposalToFiles(
+        { "index.html": "<section><p>The Eastern Front never closed.</p></section>" },
+        {
+            operations: [{
+                type: "insert_before_text",
+                file: "index.html",
+                anchor: "<p>The Eastern Front never closed.</p>",
+                html: '<figure><img src="assets/upload.jpg" alt=""></figure>'
+            }]
+        }
+    );
+
+    assert.equal(
+        result.files["index.html"],
+        '<section><figure><img src="assets/upload.jpg" alt=""></figure>\n<p>The Eastern Front never closed.</p></section>'
+    );
+});
+
 test("summarizeOperations creates concise labels", () => {
     const summary = summarizeOperations([
         { type: "replace_text", file: "index.html", find: "old text that is long", replace: "new text" },
-        { type: "replace_image", file: "index.html", currentSrc: "a.jpg", newSrc: "b.jpg" }
+        { type: "replace_image", file: "index.html", currentSrc: "a.jpg", newSrc: "b.jpg" },
+        { type: "insert_before_text", file: "index.html", anchor: "anchor text", html: "<div></div>" }
     ]);
 
     assert.deepEqual(summary, [
         "Replace text in index.html: old text that is long",
-        "Swap image in index.html: a.jpg -> b.jpg"
+        "Swap image in index.html: a.jpg -> b.jpg",
+        "Insert content before text in index.html: anchor text"
     ]);
 });
 
@@ -76,4 +97,16 @@ test("buildPreviewHtml injects base and inline styles", () => {
 
     assert.match(preview, /<base href="https:\/\/youarestillinsideit.com\/">/);
     assert.match(preview, /<style>\nbody \{ color: red; \}\n<\/style>/);
+});
+
+test("buildPreviewHtml inlines uploaded asset data urls", () => {
+    const preview = buildPreviewHtml(
+        {
+            "index.html": '<!doctype html><html><head></head><body><img src="assets/upload.jpg"></body></html>',
+            "styles.css": ""
+        },
+        { assetDataUrls: { "assets/upload.jpg": "data:image/jpeg;base64,abc" } }
+    );
+
+    assert.match(preview, /src="data:image\/jpeg;base64,abc"/);
 });
