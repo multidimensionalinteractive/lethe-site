@@ -121,6 +121,7 @@ generatePreview.addEventListener("click", async () => {
 
     generatePreview.disabled = true;
     pushProposal.disabled = true;
+    generatePreview.textContent = "Generating";
     state.proposalId = "";
     setPushStatus("Generating a preview from the latest request...");
 
@@ -157,6 +158,7 @@ generatePreview.addEventListener("click", async () => {
         setPushStatus(error.message, "error");
     } finally {
         generatePreview.disabled = false;
+        generatePreview.textContent = "Generate Preview";
     }
 });
 

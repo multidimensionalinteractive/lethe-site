@@ -280,7 +280,8 @@ button {
 
 .proposal-preview {
     width: 100%;
-    height: min(68vh, 720px);
+    height: min(62vh, 680px);
+    min-height: 18rem;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: #0a0a0a;
 }
@@ -292,7 +293,7 @@ button {
 
 .push-status {
     min-height: 1.4rem;
-    margin: 0;
+    margin: 0.75rem 0 1rem;
     color: var(--muted);
     font-family: var(--font-ui);
     font-size: 0.9rem;
