@@ -3,200 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YOU ARE STILL INSIDE IT – LETHE</title>
+    <title>YOU ARE STILL INSIDE IT</title>
     <link rel="icon" type="image/jpeg" href="assets/favicon-lethe.jpg">
     <link rel="apple-touch-icon" href="assets/favicon-lethe.jpg">
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500&family=EB+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="nav">
-        <div class="nav-brand">
-            <span class="nav-logo">LETHE</span>
-        </div>
+    <nav class="site-nav" aria-label="Primary navigation">
+        <a class="nav-mark" href="#top">
+            <img src="assets/favicon-lethe.jpg" alt="" aria-hidden="true">
+            <span>LETHE</span>
+        </a>
         <div class="nav-links">
-            <a href="#work" class="nav-link">Work</a>
-            <a href="#about" class="nav-link">About</a>
-            <a href="#contact" class="nav-link">Contact</a>
+            <a href="#statement">Statement</a>
+            <a href="#archive">Archive</a>
+            <a href="#contact">Contact</a>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-background">
-            <div class="hero-image-overlay"></div>
-        </div>
+    <header class="hero" id="top">
+        <div class="hero-image" aria-hidden="true"></div>
+        <div class="hero-scrim"></div>
         <div class="hero-content">
-            <p class="hero-subtitle">THE FRONT IS FORMING.</p>
-            <h1 class="hero-title">YOU ARE STILL<br>INSIDE IT</h1>
-            <p class="hero-tagline">— LETHE —</p>
+            <p class="kicker">archival witness project</p>
+            <h1>YOU ARE STILL INSIDE IT</h1>
+            <p class="hero-line">THE FRONT DID NOT END</p>
+            <div class="palette-rail" aria-label="Site color system">
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
         </div>
-        <div class="hero-accent"></div>
-    </section>
+    </header>
 
-    <!-- Featured Artwork -->
-    <section class="featured-artwork" aria-label="Featured artwork">
-        <figure class="featured-artwork-frame">
-            <img src="assets/viktor.jpg" alt="Viktor portrait from the Lethe series" class="featured-artwork-image">
-        </figure>
-    </section>
-
-    <!-- Main Content -->
     <main>
-        <!-- Section 1: The Eastern Front -->
-        <section class="chapter" id="work">
-            <div class="chapter-marker">
-                <span>01</span>
-            </div>
-            <div class="chapter-content">
-                <p class="chapter-text">The Eastern Front never closed.</p>
-                <p class="chapter-text">We live inside its elements still — a sealed historical interior, a parallel psychic architecture.</p>
-                <div class="chapter-divider"></div>
-            </div>
-        </section>
-
-        <!-- Section 2: Stalingrad -->
-        <section class="chapter">
-            <div class="chapter-marker">
-                <span>02</span>
-            </div>
-            <div class="chapter-content">
-                <h2 class="chapter-heading">STALINGRAD</h2>
-                <p class="chapter-text">Stalingrad remains the center. A Kessel where these men exist between document and apparition.</p>
-                <div class="chapter-image-container">
-                    <div class="chapter-image">
-                        <div class="image-placeholder">ARCHIVAL FOOTAGE</div>
-                    </div>
+        <section class="section statement" id="statement">
+            <div class="section-index">01</div>
+            <div class="section-body narrow">
+                <p class="kicker">project statement</p>
+                <h2>THE CONTINUOUS PRESENT</h2>
+                <div class="prose lead">
+                    <p>The Eastern Front is not approached here as a closed historical event. It persists as atmosphere, material, infrastructure, and psychic weather.</p>
+                    <p>You Are Still Inside It is a contemporary archival art project built from fragments: wartime images, field reports, ruined cities, private correspondence, and figures suspended between document and apparition.</p>
+                    <p>The work does not illustrate war. It studies the afterlife of historical force, and the ways a century can continue to occupy the present without announcing itself.</p>
                 </div>
             </div>
         </section>
 
-        <!-- Section 3: The Witness -->
-        <section class="chapter">
-            <div class="chapter-marker">
-                <span>03</span>
-            </div>
-            <div class="chapter-content">
-                <p class="chapter-text">I see them through the lens of time, a witness from a different front myself.</p>
-                <p class="chapter-text">They move in a space larger than them, yet held in their full strength and individuality.</p>
+        <section class="art-section witness-section">
+            <figure class="artwork portrait">
+                <img src="assets/viktor.jpg" alt="Red hooded figure from the Lethe series">
+                <figcaption>LETHE SERIES / WITNESS STUDY</figcaption>
+            </figure>
+            <div class="section-body">
+                <p class="kicker">human dimension</p>
+                <h2>THE WITNESSES</h2>
+                <div class="prose">
+                    <p>The figures are not symbols. They are presences held at the edge of recognition, pulled forward through color, damage, and interruption.</p>
+                    <p>Each face becomes a site of pressure: the archive looking back, altered by the hand, refusing to remain inert.</p>
+                </div>
             </div>
         </section>
 
-        <!-- Section 4: Lethe -->
-        <section class="chapter">
-            <div class="chapter-marker">
+        <section class="section method" id="archive">
+            <div class="section-index">03</div>
+            <div class="section-body">
+                <p class="kicker">research / method</p>
+                <h2>METHOD &amp; ARCHIVE</h2>
+                <div class="method-grid">
+                    <article>
+                        <h3>Archival Sources</h3>
+                        <p>Operational histories, field reports, wartime correspondence, intelligence imagery, and visual archives form the documentary ground.</p>
+                    </article>
+                    <article>
+                        <h3>Material Process</h3>
+                        <p>Collage, overpainting, abrasion, and chromatic distortion convert source material into living historical surface.</p>
+                    </article>
+                    <article>
+                        <h3>Historical Research</h3>
+                        <p>The project remains anchored in the Eastern Front and Battle of Stalingrad while resisting spectacle, fandom, or militaria display.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="bibliography">
+            <div class="section-body wide">
+                <p class="kicker">research apparatus</p>
+                <h2>SELECTED ARCHIVE &amp; BIBLIOGRAPHY</h2>
+                <p class="archive-intro">Memoirs, operational histories, battlefield archaeology, wartime correspondence, Soviet and German primary accounts, visual archives, and postwar testimony related to the Eastern Front and the Battle of Stalingrad.</p>
+                <div class="archive-grid">
+                    <article>
+                        <h3>Operational Histories</h3>
+                        <p>David M. Glantz<br>Antony Beevor<br>Jason D. Mark<br>Nik Cornish<br>Erhard Raus</p>
+                    </article>
+                    <article>
+                        <h3>Memoirs &amp; Testimony</h3>
+                        <p>Reinhold Busch<br>Heinrich Gerlach<br>Franz Sapp<br>Jens Ebert<br>Feldpost collections</p>
+                    </article>
+                    <article>
+                        <h3>Visual &amp; Archival Sources</h3>
+                        <p>Intelligence imagery archives<br>Wartime photography collections<br>German and Soviet battlefield ephemera<br>POW documentation<br>Medical and logistical reports</p>
+                    </article>
+                    <article>
+                        <h3>Battlefield &amp; Material Studies</h3>
+                        <p>Barrikady Factory studies<br>Urban combat analyses<br>Panzer operational records<br>Eastern Front engineering reports</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="image-band collapse">
+            <div class="image-placeholder">
                 <span>04</span>
+                <strong>THE COLLAPSE OF DISTANCE</strong>
+                <p>large red battlefield composition</p>
             </div>
-            <div class="chapter-content">
-                <h2 class="chapter-heading">LETHE</h2>
-                <p class="chapter-text">I have always identified with Lethe — from decadent poetry and mythology, and as a witness.</p>
-                <p class="chapter-text">She is the entrancing figure through whom this work moves: oblivion that chooses not to forget, lifting these men out of the half-erased.</p>
-                <div class="chapter-image-container">
-                    <div class="chapter-image">
-                        <div class="image-placeholder">LETHE SERIES</div>
-                    </div>
+        </section>
+
+        <section class="section archive-multiplies">
+            <div class="section-index">05</div>
+            <div class="section-body">
+                <p class="kicker">expanded field</p>
+                <h2>THE ARCHIVE MULTIPLIES</h2>
+                <div class="panel-grid">
+                    <div class="fragment-card">multi-figure panel</div>
+                    <div class="fragment-card">field material</div>
+                    <div class="fragment-card">witness group</div>
+                </div>
+                <div class="prose">
+                    <p>The project expands from isolated works into a larger apparatus of recurrence, accumulation, and return.</p>
                 </div>
             </div>
         </section>
 
-        <!-- Section 5: Resurrection -->
-        <section class="chapter">
-            <div class="chapter-marker">
-                <span>05</span>
-            </div>
-            <div class="chapter-content">
-                <p class="chapter-text">The photographs they never saw now carry them.</p>
-                <p class="chapter-text">The work continues as quiet resurrection in distilled light.</p>
-                <div class="chapter-divider"></div>
-            </div>
-        </section>
-
-        <!-- Section 6: Necessity -->
-        <section class="chapter">
-            <div class="chapter-marker">
-                <span>06</span>
-            </div>
-            <div class="chapter-content">
-                <p class="chapter-text">I make it because my existence feels tied to it.</p>
-                <p class="chapter-text">It feels less like choice than necessity.</p>
-                <p class="chapter-text" style="font-style: italic;">The enclosure holds.</p>
-            </div>
-        </section>
-
-        <!-- Section 7: A Presence Emerges -->
-        <section class="chapter presence-section">
-            <div class="chapter-marker">
-                <span>07</span>
-            </div>
-            <div class="chapter-content">
-                <h2 class="chapter-heading">A PRESENCE EMERGES</h2>
-                <p class="chapter-text">From the new series.</p>
-                <p class="chapter-text">One of these men, refracted through time, never having seen the image that now holds him.</p>
-                <p class="chapter-text">Still inside the Lethean enclosure.</p>
-                <div class="chapter-subtext">Inquiries for private views.</div>
-            </div>
-        </section>
-
-        <!-- Section 8: The Enclosure Holds -->
-        <section class="chapter enclosure-section">
-            <div class="chapter-marker">
-                <span>08</span>
-            </div>
-            <div class="chapter-content">
-                <h2 class="chapter-heading">THE ENCLOSURE HOLDS</h2>
-                <p class="chapter-text">You Are Still Inside It is a long-form body of work on the Eastern Front, with Stalingrad at its gravitational center.</p>
-                <div class="chapter-text-block">
-                    <p>It constructs a historical interior where the figures are presences, not symbols.</p>
-                    <p>Unknown men whose unresolved narratives rise from a rupture that never fully closed.</p>
+        <section class="section working-materials">
+            <div class="section-index">06</div>
+            <div class="section-body wide">
+                <p class="kicker">process</p>
+                <h2>WORKING MATERIALS</h2>
+                <div class="materials-grid">
+                    <div>sketchbook leaves</div>
+                    <div>notebook studies</div>
+                    <div>source fragments</div>
+                    <div>color tests</div>
                 </div>
-                <p class="chapter-text">The meta-anomaly remains: the subject who witnessed himself never witnessed the printed image.</p>
-                <p class="chapter-text">One of many unresolved ends on the Eastern Front, which I relate to light and manifest through my eyes.</p>
             </div>
         </section>
 
-        <!-- Section 9: Process -->
-        <section class="chapter">
-            <div class="chapter-marker">
-                <span>09</span>
-            </div>
-            <div class="chapter-content">
-                <p class="chapter-text">The process begins in a Jungian, pre-verbal register — a bodily recognition, permission granted from within the image itself.</p>
-                <div class="chapter-divider"></div>
+        <section class="section fragments">
+            <div class="section-index">07</div>
+            <div class="section-body wide">
+                <p class="kicker">selected works</p>
+                <h2>FRAGMENTS</h2>
+                <div class="fragment-grid">
+                    <figure><img src="assets/bieria.jpg" alt="Portrait collage from the Lethe series"><figcaption>portrait / collage</figcaption></figure>
+                    <figure><img src="assets/viktor.jpg" alt="Lethe portrait detail"><figcaption>witness detail</figcaption></figure>
+                    <figure><img src="assets/33318.jpg" alt="Sketchbook soldier study"><figcaption>working material</figcaption></figure>
+                </div>
             </div>
         </section>
 
-        <!-- Section 10: Final -->
-        <section class="chapter final-section">
-            <div class="chapter-marker">
-                <span>10</span>
-            </div>
-            <div class="chapter-content">
-                <p class="chapter-text" style="font-size: 1.8rem; font-weight: 500;">Lethe moves through it: both forgetting and the refusal to let remain forgotten.</p>
-                <p class="chapter-text">This is clarification and realignment.</p>
-                <p class="chapter-text" style="letter-spacing: 0.3em; margin-top: 2rem;">WE ARE ALL STILL INSIDE IT.</p>
-                <p class="chapter-text" style="letter-spacing: 0.3em;">THE FRONT NEVER ENDED.</p>
+        <section class="contact" id="contact">
+            <div>
+                <p class="kicker">acquisitions / correspondence</p>
+                <h2>ACQUISITIONS &amp; CORRESPONDENCE</h2>
+                <p>Selected works, commissions, exhibitions, collaborations, and research inquiries:</p>
+                <a href="mailto:feldpost@youarestillinsideit.com">feldpost@youarestillinsideit.com</a>
             </div>
         </section>
     </main>
 
-    <!-- Newsletter Section -->
-    <section class="newsletter" id="contact">
-        <div class="newsletter-content">
-            <p class="newsletter-text">IF THE PULL IS FAMILIAR</p>
-            <p class="newsletter-subtext">For private views and correspondence.</p>
-            <a class="newsletter-button contact-email" href="mailto:feldpost@youarestillinsideit.com">feldpost@youarestillinsideit.com</a>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <span class="footer-title">YOU ARE STILL INSIDE IT</span>
-            <span class="footer-year">— 2026 —</span>
-        </div>
+    <footer class="site-footer">
+        <span>YOU ARE STILL INSIDE IT</span>
+        <strong>THE FRONT DID NOT END.</strong>
+        <span>2026</span>
     </footer>
 
     <script src="script.js"></script>
