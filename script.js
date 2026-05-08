@@ -69,7 +69,7 @@ window.addEventListener('load', () => {
     }, 100);
 });
 
-// Anonymous visit signal for the private dashboard
+// Anonymous visit signal for Chanel's dashboard
 if (window.location.pathname !== '/dashboard/' && !window.location.pathname.startsWith('/dashboard/')) {
     fetch('https://hermes-web.mdi.io/lethe-dashboard/api/track', {
         method: 'POST',
