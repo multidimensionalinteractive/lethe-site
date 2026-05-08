@@ -54,30 +54,6 @@ window.addEventListener('scroll', () => {
     }
 });
 
-// Newsletter form handling
-const newsletterForm = document.getElementById('newsletter-form');
-if (newsletterForm) {
-    newsletterForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = e.target.querySelector('input[type="email"]').value;
-        
-        // Add visual feedback
-        const button = e.target.querySelector('button');
-        const originalText = button.textContent;
-        
-        button.textContent = 'SUBSCRIBED';
-        button.style.borderColor = '#1D4D4F';
-        button.style.color = '#1D4D4F';
-        
-        setTimeout(() => {
-            button.textContent = originalText;
-            button.style.borderColor = '';
-            button.style.color = '';
-            e.target.reset();
-        }, 2000);
-    });
-}
-
 // Smooth reveal on page load
 window.addEventListener('load', () => {
     document.body.style.opacity = '1';
