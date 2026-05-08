@@ -48,27 +48,6 @@
                 </article>
             </div>
 
-            <section class="visits-panel" aria-label="Visitor overview">
-                <div class="visits-header">
-                    <div>
-                        <p class="eyebrow">SIGNALS</p>
-                        <h3>Recent visitors</h3>
-                    </div>
-                    <button class="ghost-button compact-button" id="refresh-visits" type="button">Refresh</button>
-                </div>
-                <div class="visit-grid">
-                    <div>
-                        <span class="visit-number" id="visits-total">--</span>
-                        <span class="visit-label">total visits</span>
-                    </div>
-                    <div>
-                        <span class="visit-number" id="visits-countries">--</span>
-                        <span class="visit-label">countries</span>
-                    </div>
-                </div>
-                <div class="country-list" id="country-list"></div>
-            </section>
-
             <form class="composer" id="composer">
                 <textarea id="prompt" rows="3" placeholder="Example: I want the opening image to feel less centered and more like an apparition..."></textarea>
                 <button id="send" type="submit">Send</button>
@@ -90,6 +69,27 @@
                     <p class="push-status" id="push-status"></p>
                 </div>
             </section>
+        </section>
+
+        <section class="visits-panel" aria-label="Visitor overview">
+            <div class="visits-header">
+                <div>
+                    <p class="eyebrow">SIGNALS</p>
+                    <h3>Recent visitors</h3>
+                </div>
+                <button class="ghost-button compact-button" id="refresh-visits" type="button">Refresh</button>
+            </div>
+            <div class="visit-grid">
+                <div>
+                    <span class="visit-number" id="visits-total">--</span>
+                    <span class="visit-label">total visits</span>
+                </div>
+                <div>
+                    <span class="visit-number" id="visits-countries">--</span>
+                    <span class="visit-label">countries</span>
+                </div>
+            </div>
+            <div class="country-list" id="country-list"></div>
         </section>
     </main>
 
