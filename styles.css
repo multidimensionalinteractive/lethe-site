@@ -517,14 +517,10 @@ figcaption {
 }
 
 .materials-grid div:nth-child(2) {
-    background-image: linear-gradient(180deg, rgba(138,135,124,0.1), rgba(138,135,124,0.82)), url("assets/234.jpg");
-}
-
-.materials-grid div:nth-child(3) {
     background-image: linear-gradient(180deg, rgba(138,135,124,0.1), rgba(138,135,124,0.82)), url("assets/yo53.jpg");
 }
 
-.materials-grid div:nth-child(4) {
+.materials-grid div:nth-child(3) {
     background-image: linear-gradient(180deg, rgba(138,135,124,0.1), rgba(138,135,124,0.82)), url("assets/viktor.jpg");
 }
 
