@@ -20,8 +20,8 @@
             <div class="status-card">
                 <span class="status-dot"></span>
                 <div>
-                    <p class="status-title">Drafting assistant</p>
-                    <p class="status-copy">Suggestions only for now. Matt can apply and deploy approved changes.</p>
+                    <p class="status-title">Live editing enabled</p>
+                    <p class="status-copy">Exact replacements can be reviewed, pushed to GitHub, and deployed through Hostinger.</p>
                 </div>
             </div>
 
@@ -48,10 +48,63 @@
                 </article>
             </div>
 
+            <section class="visits-panel" aria-label="Visitor overview">
+                <div class="visits-header">
+                    <div>
+                        <p class="eyebrow">SIGNALS</p>
+                        <h3>Recent visitors</h3>
+                    </div>
+                    <button class="ghost-button compact-button" id="refresh-visits" type="button">Refresh</button>
+                </div>
+                <div class="visit-grid">
+                    <div>
+                        <span class="visit-number" id="visits-total">--</span>
+                        <span class="visit-label">total visits</span>
+                    </div>
+                    <div>
+                        <span class="visit-number" id="visits-countries">--</span>
+                        <span class="visit-label">countries</span>
+                    </div>
+                </div>
+                <div class="country-list" id="country-list"></div>
+            </section>
+
             <form class="composer" id="composer">
                 <textarea id="prompt" rows="3" placeholder="Example: I want the opening image to feel less centered and more like an apparition..."></textarea>
                 <button id="send" type="submit">Send</button>
             </form>
+
+            <details class="push-panel">
+                <summary>Push Live</summary>
+                <form id="push-form" class="push-form">
+                    <label>
+                        File
+                        <select id="push-file">
+                            <option value="index.html">index.html</option>
+                            <option value="styles.css">styles.css</option>
+                            <option value="script.js">script.js</option>
+                        </select>
+                    </label>
+                    <label>
+                        Exact text currently on the site
+                        <textarea id="push-find" rows="4" placeholder="Paste the exact current text here"></textarea>
+                    </label>
+                    <label>
+                        Replacement text
+                        <textarea id="push-replace" rows="4" placeholder="Paste the new text here"></textarea>
+                    </label>
+                    <label>
+                        Commit note
+                        <input id="push-message" type="text" placeholder="Update Lethe site copy">
+                    </label>
+                    <label class="confirm-row">
+                        <input id="push-confirm" type="checkbox">
+                        I reviewed this exact replacement and want to publish it.
+                    </label>
+                    <button id="push-live" type="submit">Push Live</button>
+                    <p class="push-status" id="push-status"></p>
+                </form>
+            </details>
         </section>
     </main>
 

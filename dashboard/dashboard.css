@@ -133,7 +133,7 @@ h2 {
 .chat-panel {
     min-width: 0;
     display: grid;
-    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: auto auto minmax(12rem, 1fr) auto auto;
     gap: 1rem;
     background:
         radial-gradient(circle at top right, rgba(241, 196, 15, 0.08), transparent 34rem),
@@ -153,7 +153,10 @@ h2 {
 }
 
 .access-row input,
-.composer textarea {
+.composer textarea,
+.push-form input,
+.push-form select,
+.push-form textarea {
     width: 100%;
     color: var(--ink);
     background: var(--panel);
@@ -161,12 +164,15 @@ h2 {
     outline: none;
 }
 
-.access-row input {
+.access-row input,
+.push-form input,
+.push-form select {
     min-width: 0;
     padding: 0.9rem 1rem;
 }
 
-.composer textarea {
+.composer textarea,
+.push-form textarea {
     resize: vertical;
     min-height: 5.5rem;
     max-height: 14rem;
@@ -175,7 +181,10 @@ h2 {
 }
 
 .access-row input:focus,
-.composer textarea:focus {
+.composer textarea:focus,
+.push-form input:focus,
+.push-form select:focus,
+.push-form textarea:focus {
     border-color: var(--gold);
 }
 
@@ -194,6 +203,10 @@ button {
 .ghost-button {
     background: transparent;
     color: var(--gold);
+}
+
+.compact-button {
+    padding: 0.7rem 0.8rem;
 }
 
 .messages {
@@ -227,6 +240,115 @@ button {
 
 .message p:last-child {
     margin-bottom: 0;
+}
+
+.push-panel {
+    border: 1px solid rgba(241, 196, 15, 0.22);
+    background: rgba(10, 8, 12, 0.36);
+}
+
+.push-panel summary {
+    cursor: pointer;
+    padding: 1rem;
+    color: var(--gold);
+    font-family: var(--font-header);
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.push-form {
+    display: grid;
+    gap: 1rem;
+    padding: 0 1rem 1rem;
+}
+
+.push-form label {
+    display: grid;
+    gap: 0.4rem;
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.84rem;
+}
+
+.confirm-row {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+}
+
+.confirm-row input {
+    width: auto;
+}
+
+.push-status {
+    min-height: 1.4rem;
+    margin: 0;
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+}
+
+.push-status.error {
+    color: var(--red);
+}
+
+.push-status.success {
+    color: var(--gold);
+}
+
+.visits-panel {
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(10, 8, 12, 0.28);
+}
+
+.visits-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: start;
+}
+
+.visits-header h3 {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 1.6rem;
+    font-weight: 400;
+}
+
+.visit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.visit-number {
+    display: block;
+    color: var(--ink);
+    font-family: var(--font-header);
+    font-size: 2rem;
+    letter-spacing: 0.08em;
+}
+
+.visit-label {
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+}
+
+.country-list {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.country-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
 }
 
 @media (max-width: 820px) {

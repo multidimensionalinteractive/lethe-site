@@ -1,9 +1,20 @@
 const http = require("node:http");
+const fs = require("node:fs/promises");
+const path = require("node:path");
+const { execFile } = require("node:child_process");
+const { promisify } = require("node:util");
+
+const { applyExactReplacement, validatePushPayload } = require("./exact-edit");
 
 const PORT = Number(process.env.PORT || 8787);
 const ACCESS_CODE = process.env.LETHE_DASHBOARD_ACCESS || "";
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://127.0.0.1:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "gemma3:4b";
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || "";
+const REPO_URL = process.env.LETHE_REPO_URL || "https://github.com/multidimensionalinteractive/lethe-site.git";
+const WORKTREE = process.env.LETHE_WORKTREE || "/opt/lethe-site-work";
+const REPO_BRANCH = process.env.LETHE_REPO_BRANCH || "master";
+const VISITS_FILE = process.env.LETHE_VISITS_FILE || "/var/lib/lethe-dashboard/visits.jsonl";
 const ALLOWED_ORIGINS = new Set([
     "https://youarestillinsideit.com",
     "https://www.youarestillinsideit.com",
@@ -25,14 +36,15 @@ Your role:
 - Speak directly to Chanel, not to Matt.
 - Do not invent current images, sections, or facts. If you are unsure what is currently on the page, say what you would check and give a conditional suggestion.
 - When a request is ready for implementation, summarize exact changes Matt/Codex should apply.
+- If Chanel wants to push live, tell her to use the Push Live panel with exact text to replace and exact replacement text.
 - Keep the tone warm, direct, and art-literate. Avoid generic marketing language.`;
 
 function sendJson(response, status, payload, origin) {
     response.writeHead(status, {
         "Content-Type": "application/json; charset=utf-8",
         "Access-Control-Allow-Origin": origin || "https://youarestillinsideit.com",
-        "Access-Control-Allow-Headers": "Content-Type, X-Lethe-Access",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Lethe-Access",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Vary": "Origin"
     });
     response.end(JSON.stringify(payload));
@@ -86,6 +98,120 @@ async function askOllama(messages) {
     return data?.message?.content?.trim() || "I could not form a reply from the local model.";
 }
 
+function runGit(args, options = {}) {
+    return promisify(execFile)("git", args, {
+        cwd: options.cwd,
+        env: {
+            ...process.env,
+            GIT_TERMINAL_PROMPT: "0"
+        },
+        maxBuffer: 1024 * 1024
+    });
+}
+
+async function ensureWorktree() {
+    if (!GITHUB_TOKEN) {
+        throw new Error("GitHub push credentials are not configured on the dashboard server.");
+    }
+
+    const authedRepoUrl = REPO_URL.replace("https://", `https://x-access-token:${GITHUB_TOKEN}@`);
+
+    try {
+        await fs.access(path.join(WORKTREE, ".git"));
+    } catch {
+        await fs.rm(WORKTREE, { recursive: true, force: true });
+        await runGit(["clone", "--branch", REPO_BRANCH, authedRepoUrl, WORKTREE]);
+    }
+
+    await runGit(["remote", "set-url", "origin", authedRepoUrl], { cwd: WORKTREE });
+    await runGit(["fetch", "origin", REPO_BRANCH], { cwd: WORKTREE });
+    await runGit(["checkout", REPO_BRANCH], { cwd: WORKTREE });
+    await runGit(["reset", "--hard", `origin/${REPO_BRANCH}`], { cwd: WORKTREE });
+}
+
+async function pushExactEdit(payload) {
+    const edit = validatePushPayload(payload);
+    await ensureWorktree();
+
+    const filePath = path.join(WORKTREE, edit.file);
+    const original = await fs.readFile(filePath, "utf8");
+    const result = applyExactReplacement(original, edit.find, edit.replace);
+
+    await fs.writeFile(filePath, result.content);
+    const status = await runGit(["status", "--porcelain", "--", edit.file], { cwd: WORKTREE });
+    if (!status.stdout.trim()) {
+        throw new Error("Replacement produced no file change.");
+    }
+
+    await runGit(["add", edit.file], { cwd: WORKTREE });
+    await runGit(["commit", "-m", edit.message], { cwd: WORKTREE });
+    const commit = await runGit(["rev-parse", "--short", "HEAD"], { cwd: WORKTREE });
+    await runGit(["push", "origin", REPO_BRANCH], { cwd: WORKTREE });
+
+    return {
+        ok: true,
+        file: edit.file,
+        replacements: result.replacements,
+        commit: commit.stdout.trim(),
+        message: edit.message
+    };
+}
+
+function getClientIp(request) {
+    const forwarded = String(request.headers["x-forwarded-for"] || "").split(",")[0].trim();
+    return forwarded || request.socket.remoteAddress || "";
+}
+
+function getCountry(request) {
+    const cfCountry = String(request.headers["cf-ipcountry"] || "").trim();
+    const nginxCountry = String(request.headers["x-country-code"] || "").trim();
+    const country = cfCountry || nginxCountry;
+    return country && country !== "XX" ? country.toUpperCase() : "Unknown";
+}
+
+async function trackVisit(request, payload) {
+    const entry = {
+        ts: new Date().toISOString(),
+        country: getCountry(request),
+        path: String(payload?.path || "/").slice(0, 200),
+        referrer: String(payload?.referrer || "").slice(0, 300),
+        ipPrefix: getClientIp(request).replace(/(\d+\.\d+)\.\d+\.\d+$/, "$1.0.0")
+    };
+
+    await fs.mkdir(path.dirname(VISITS_FILE), { recursive: true });
+    await fs.appendFile(VISITS_FILE, `${JSON.stringify(entry)}\n`);
+    return { ok: true };
+}
+
+async function getVisitSummary() {
+    let raw = "";
+    try {
+        raw = await fs.readFile(VISITS_FILE, "utf8");
+    } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+    }
+
+    const countryCounts = new Map();
+    let totalVisits = 0;
+    for (const line of raw.split("\n")) {
+        if (!line.trim()) continue;
+        try {
+            const visit = JSON.parse(line);
+            totalVisits += 1;
+            const country = visit.country || "Unknown";
+            countryCounts.set(country, (countryCounts.get(country) || 0) + 1);
+        } catch {
+            // Ignore malformed historical rows.
+        }
+    }
+
+    const countries = [...countryCounts.entries()]
+        .map(([country, count]) => ({ country, count }))
+        .sort((a, b) => b.count - a.count || a.country.localeCompare(b.country));
+
+    return { totalVisits, countries };
+}
+
 const server = http.createServer(async (request, response) => {
     const origin = request.headers.origin;
     const allowedOrigin = ALLOWED_ORIGINS.has(origin) ? origin : "https://youarestillinsideit.com";
@@ -98,7 +224,28 @@ const server = http.createServer(async (request, response) => {
         return sendJson(response, 200, { ok: true, model: OLLAMA_MODEL }, allowedOrigin);
     }
 
-    if (request.url !== "/api/chat" || request.method !== "POST") {
+    if (request.url === "/api/visits" && request.method === "GET") {
+        if (!ACCESS_CODE || request.headers["x-lethe-access"] !== ACCESS_CODE) {
+            return sendJson(response, 401, { error: "Access code required." }, allowedOrigin);
+        }
+        try {
+            return sendJson(response, 200, await getVisitSummary(), allowedOrigin);
+        } catch (error) {
+            return sendJson(response, 500, { error: error.message || "Could not load visits." }, allowedOrigin);
+        }
+    }
+
+    if (request.url === "/api/track" && request.method === "POST") {
+        try {
+            const body = await readBody(request);
+            const payload = JSON.parse(body || "{}");
+            return sendJson(response, 200, await trackVisit(request, payload), allowedOrigin);
+        } catch (error) {
+            return sendJson(response, 200, { ok: false }, allowedOrigin);
+        }
+    }
+
+    if (!["/api/chat", "/api/push-live"].includes(request.url) || request.method !== "POST") {
         return sendJson(response, 404, { error: "Not found." }, allowedOrigin);
     }
 
@@ -109,6 +256,12 @@ const server = http.createServer(async (request, response) => {
     try {
         const body = await readBody(request);
         const payload = JSON.parse(body || "{}");
+
+        if (request.url === "/api/push-live") {
+            const result = await pushExactEdit(payload);
+            return sendJson(response, 200, result, allowedOrigin);
+        }
+
         const messages = normalizeMessages(payload.messages);
         if (!messages.length) {
             return sendJson(response, 400, { error: "Send a message first." }, allowedOrigin);

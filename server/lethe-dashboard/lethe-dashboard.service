@@ -10,7 +10,7 @@ Environment=NODE_ENV=production
 Environment=PORT=8787
 Environment=OLLAMA_URL=http://127.0.0.1:11434
 Environment=OLLAMA_MODEL=gemma3:4b
-Environment=LETHE_DASHBOARD_ACCESS=rbGpdkrog8jO6dYhwAFfVIOb
+EnvironmentFile=-/etc/lethe-dashboard.env
 ExecStart=/usr/bin/node /opt/lethe-dashboard/server.js
 Restart=on-failure
 RestartSec=5

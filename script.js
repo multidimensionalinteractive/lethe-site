@@ -69,6 +69,19 @@ window.addEventListener('load', () => {
     }, 100);
 });
 
+// Anonymous visit signal for the private dashboard
+if (window.location.pathname !== '/dashboard/' && !window.location.pathname.startsWith('/dashboard/')) {
+    fetch('https://hermes-web.mdi.io/lethe-dashboard/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            path: window.location.pathname,
+            referrer: document.referrer.slice(0, 300)
+        }),
+        keepalive: true
+    }).catch(() => {});
+}
+
 // Navigation scroll effect
 const nav = document.querySelector('.nav');
 window.addEventListener('scroll', () => {
