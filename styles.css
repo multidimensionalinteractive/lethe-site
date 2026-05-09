@@ -113,16 +113,6 @@ a {
     transition: border-color 900ms ease, filter 900ms ease;
 }
 
-.nav-mark.is-warming {
-    color: var(--vermilion);
-    text-shadow: 0 0 22px rgba(161,49,36,0.28);
-}
-
-.nav-mark.is-warming img {
-    border-color: rgba(161,49,36,0.62);
-    filter: saturate(0.9) contrast(1.1);
-}
-
 .nav-links {
     display: flex;
     gap: clamp(1rem, 3vw, 2.4rem);
@@ -223,6 +213,17 @@ h1 {
     color: var(--dust-gold);
     font-size: clamp(4rem, 11vw, 9.8rem);
     line-height: 0.9;
+}
+
+.hero-title {
+    transition: color 1100ms ease, text-shadow 1100ms ease;
+}
+
+.hero-title.is-warming {
+    color: var(--vermilion);
+    text-shadow:
+        0 0 18px rgba(161,49,36,0.22),
+        0 0 44px rgba(161,49,36,0.12);
 }
 
 h2 {
