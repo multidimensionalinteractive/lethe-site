@@ -20,7 +20,7 @@ function settleFadeTarget(target) {
     target.style.opacity = "1";
 }
 
-function applyScrollFade(target, progress, transform) {
+function applyScrollFade(target, progress, transform, settleDelay = 260) {
     if (!target) return;
     target.classList.add("is-scrolling");
     if (transform) {
@@ -28,7 +28,7 @@ function applyScrollFade(target, progress, transform) {
     }
     target.style.opacity = String(Math.max(0.3, 1 - progress));
     window.clearTimeout(settleTimers.get(target));
-    settleTimers.set(target, window.setTimeout(() => settleFadeTarget(target), 260));
+    settleTimers.set(target, window.setTimeout(() => settleFadeTarget(target), settleDelay));
 }
 
 window.addEventListener("scroll", () => {
@@ -60,7 +60,7 @@ window.addEventListener("scroll", () => {
                 const sectionCenter = rect.top + (rect.height / 2);
                 const distance = Math.abs(sectionCenter - viewportCenter);
                 const progress = Math.min(0.7, distance / window.innerHeight);
-                applyScrollFade(witnessSection, progress);
+                applyScrollFade(witnessSection, progress, null, 760);
             } else {
                 settleFadeTarget(witnessSection);
             }
@@ -75,7 +75,7 @@ window.addEventListener("scroll", () => {
             window.clearTimeout(navWarmTimer);
             navWarmTimer = window.setTimeout(() => {
                 navMark.classList.remove("is-warming");
-            }, 420);
+            }, 1100);
         }
 
         ticking = false;
