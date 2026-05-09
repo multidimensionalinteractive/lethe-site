@@ -6,7 +6,7 @@ const revealObserver = new IntersectionObserver((entries) => {
     });
 }, { threshold: 0.12 });
 
-document.querySelectorAll(".section, .art-section, .bibliography, .image-band, .contact").forEach((section) => {
+document.querySelectorAll(".section, .art-section, .bibliography, .image-band, .contact, .observations-hero, .observation-card").forEach((section) => {
     revealObserver.observe(section);
 });
 

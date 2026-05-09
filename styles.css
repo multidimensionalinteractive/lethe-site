@@ -626,6 +626,92 @@ figcaption {
         var(--oil-charcoal);
 }
 
+.observations-page {
+    min-height: 100vh;
+}
+
+.observations-hero {
+    min-height: 72vh;
+    display: grid;
+    align-items: end;
+    padding: 10rem clamp(1rem, 5vw, 5rem) clamp(5rem, 10vw, 8rem);
+    border-bottom: 1px solid var(--line);
+    background:
+        linear-gradient(90deg, rgba(26,27,29,0.94), rgba(26,27,29,0.72)),
+        radial-gradient(circle at 78% 12%, var(--vermilion-glow), transparent 26rem),
+        radial-gradient(circle at 18% 0%, var(--oxide-shadow), transparent 30rem),
+        url("assets/yo53.jpg") center / cover no-repeat;
+}
+
+.observations-hero-inner {
+    width: min(980px, 100%);
+}
+
+.observations-hero h1 {
+    max-width: 13ch;
+}
+
+.observations-intro {
+    width: min(760px, 100%);
+    color: var(--dust-gray);
+    font-size: clamp(1.05rem, 1.5vw, 1.28rem);
+}
+
+.observations-index {
+    padding: clamp(4rem, 8vw, 7rem) clamp(1rem, 5vw, 5rem);
+}
+
+.observation-list {
+    display: grid;
+    gap: 1px;
+    width: min(1080px, 100%);
+    border: 1px solid var(--line);
+    background: var(--line);
+}
+
+.observation-card {
+    display: grid;
+    grid-template-columns: minmax(7rem, 0.35fr) minmax(0, 1fr) auto;
+    gap: clamp(1rem, 3vw, 2rem);
+    align-items: start;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    background:
+        linear-gradient(90deg, rgba(78,93,79,0.08), transparent 42%),
+        rgba(32,33,36,0.88);
+    color: var(--dust-gray);
+    text-decoration: none;
+}
+
+.observation-card:hover {
+    color: var(--dust-gold);
+}
+
+.observation-number,
+.observation-status {
+    font-family: var(--font-infra);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.observation-number {
+    color: var(--vermilion-oxidized);
+}
+
+.observation-status {
+    color: var(--metadata-gray);
+}
+
+.observation-card h2 {
+    margin-bottom: 0.75rem;
+    font-size: clamp(1.5rem, 3vw, 3rem);
+}
+
+.observation-card p {
+    width: min(620px, 100%);
+    margin-bottom: 0;
+}
+
 .fragment-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -729,7 +815,8 @@ figcaption {
     .archive-grid,
     .panel-grid,
     .materials-grid,
-    .fragment-grid {
+    .fragment-grid,
+    .observation-card {
         grid-template-columns: 1fr;
     }
 
