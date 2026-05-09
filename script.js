@@ -14,6 +14,7 @@ let ticking = false;
 const settleTimers = new WeakMap();
 let heroTitleWarmTimer;
 let witnessTitleWarmTimer;
+let ethicsTitleWarmTimer;
 
 function settleFadeTarget(target) {
     if (!target) return;
@@ -42,6 +43,8 @@ window.addEventListener("scroll", () => {
         const heroImage = document.querySelector(".hero-image");
         const witnessSection = document.querySelector(".witness-section");
         const witnessTitle = document.querySelector(".witness-title");
+        const ethicsSection = document.querySelector(".ethics");
+        const ethicsTitle = document.querySelector(".ethics-title");
         const nav = document.querySelector(".site-nav");
 
         if (heroContent && scrollY < window.innerHeight) {
@@ -88,6 +91,18 @@ window.addEventListener("scroll", () => {
                 window.clearTimeout(witnessTitleWarmTimer);
                 witnessTitleWarmTimer = window.setTimeout(() => {
                     witnessTitle.classList.remove("is-warming");
+                }, 1100);
+            }
+        }
+
+        if (ethicsTitle && ethicsSection) {
+            const rect = ethicsSection.getBoundingClientRect();
+            const isEthicsInView = rect.top < window.innerHeight && rect.bottom > 0;
+            if (isEthicsInView) {
+                ethicsTitle.classList.add("is-warming");
+                window.clearTimeout(ethicsTitleWarmTimer);
+                ethicsTitleWarmTimer = window.setTimeout(() => {
+                    ethicsTitle.classList.remove("is-warming");
                 }, 1100);
             }
         }

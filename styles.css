@@ -216,12 +216,14 @@ h1 {
 }
 
 .hero-title,
-.witness-title {
+.witness-title,
+.ethics-title {
     transition: color 1100ms ease, text-shadow 1100ms ease;
 }
 
 .hero-title.is-warming,
-.witness-title.is-warming {
+.witness-title.is-warming,
+.ethics-title.is-warming {
     color: var(--vermilion);
     text-shadow:
         0 0 18px rgba(161,49,36,0.22),
