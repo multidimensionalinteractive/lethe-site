@@ -11,6 +11,15 @@ document.querySelectorAll(".section, .art-section, .bibliography, .image-band, .
 });
 
 let ticking = false;
+let heroSettleTimer;
+
+function settleHeroText() {
+    const heroContent = document.querySelector(".hero-content");
+    if (!heroContent) return;
+    heroContent.classList.remove("is-scrolling");
+    heroContent.style.opacity = "1";
+}
+
 window.addEventListener("scroll", () => {
     if (ticking) return;
 
@@ -21,8 +30,13 @@ window.addEventListener("scroll", () => {
         const nav = document.querySelector(".site-nav");
 
         if (heroContent && scrollY < window.innerHeight) {
+            heroContent.classList.add("is-scrolling");
             heroContent.style.transform = `translateY(${scrollY * 0.12}px)`;
-            heroContent.style.opacity = String(Math.max(0.18, 1 - (scrollY / window.innerHeight)));
+            heroContent.style.opacity = String(Math.max(0.7, 1 - (scrollY / (window.innerHeight * 2.8))));
+            window.clearTimeout(heroSettleTimer);
+            heroSettleTimer = window.setTimeout(settleHeroText, 260);
+        } else {
+            settleHeroText();
         }
 
         if (heroImage && scrollY < window.innerHeight) {

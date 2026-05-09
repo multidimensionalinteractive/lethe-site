@@ -158,6 +158,12 @@ a {
     width: min(1180px, calc(100% - 2rem));
     margin: 0 auto;
     padding: 9rem 0 7rem;
+    opacity: 1;
+    transition: opacity 900ms ease, transform 160ms linear;
+}
+
+.hero-content.is-scrolling {
+    transition: opacity 180ms ease, transform 160ms linear;
 }
 
 .kicker,
