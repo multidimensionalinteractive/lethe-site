@@ -13,6 +13,7 @@ document.querySelectorAll(".section, .art-section, .bibliography, .image-band, .
 let ticking = false;
 const settleTimers = new WeakMap();
 let heroTitleWarmTimer;
+let witnessTitleWarmTimer;
 
 function settleFadeTarget(target) {
     if (!target) return;
@@ -40,6 +41,7 @@ window.addEventListener("scroll", () => {
         const heroTitle = document.querySelector(".hero-title");
         const heroImage = document.querySelector(".hero-image");
         const witnessSection = document.querySelector(".witness-section");
+        const witnessTitle = document.querySelector(".witness-title");
         const nav = document.querySelector(".site-nav");
 
         if (heroContent && scrollY < window.innerHeight) {
@@ -76,6 +78,18 @@ window.addEventListener("scroll", () => {
             heroTitleWarmTimer = window.setTimeout(() => {
                 heroTitle.classList.remove("is-warming");
             }, 1100);
+        }
+
+        if (witnessTitle && witnessSection) {
+            const rect = witnessSection.getBoundingClientRect();
+            const isWitnessInView = rect.top < window.innerHeight && rect.bottom > 0;
+            if (isWitnessInView) {
+                witnessTitle.classList.add("is-warming");
+                window.clearTimeout(witnessTitleWarmTimer);
+                witnessTitleWarmTimer = window.setTimeout(() => {
+                    witnessTitle.classList.remove("is-warming");
+                }, 1100);
+            }
         }
 
         ticking = false;
