@@ -100,6 +100,7 @@ a {
     gap: 0.65rem;
     align-items: center;
     color: var(--dust-gold);
+    transition: color 900ms ease, text-shadow 900ms ease;
 }
 
 .nav-mark img {
@@ -109,6 +110,17 @@ a {
     border-radius: 50%;
     object-fit: cover;
     filter: saturate(0.65) contrast(1.06);
+    transition: border-color 900ms ease, filter 900ms ease;
+}
+
+.nav-mark.is-warming {
+    color: var(--vermilion);
+    text-shadow: 0 0 16px var(--vermilion-glow);
+}
+
+.nav-mark.is-warming img {
+    border-color: rgba(161,49,36,0.42);
+    filter: saturate(0.8) contrast(1.08);
 }
 
 .nav-links {

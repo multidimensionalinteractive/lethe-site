@@ -12,6 +12,7 @@ document.querySelectorAll(".section, .art-section, .bibliography, .image-band, .
 
 let ticking = false;
 const settleTimers = new WeakMap();
+let navWarmTimer;
 
 function settleFadeTarget(target) {
     if (!target) return;
@@ -39,6 +40,7 @@ window.addEventListener("scroll", () => {
         const heroImage = document.querySelector(".hero-image");
         const witnessSection = document.querySelector(".witness-section");
         const nav = document.querySelector(".site-nav");
+        const navMark = document.querySelector(".nav-mark");
 
         if (heroContent && scrollY < window.innerHeight) {
             applyScrollFade(heroContent, scrollY / window.innerHeight, `translateY(${scrollY * 0.12}px)`);
@@ -66,6 +68,14 @@ window.addEventListener("scroll", () => {
 
         if (nav) {
             nav.classList.toggle("is-scrolled", scrollY > 80);
+        }
+
+        if (navMark) {
+            navMark.classList.add("is-warming");
+            window.clearTimeout(navWarmTimer);
+            navWarmTimer = window.setTimeout(() => {
+                navMark.classList.remove("is-warming");
+            }, 420);
         }
 
         ticking = false;
