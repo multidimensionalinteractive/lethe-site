@@ -217,13 +217,41 @@ h3 {
 
 .hero-line {
     width: fit-content;
-    margin: 0;
+    margin: 0 0 2rem;
     padding-top: 1rem;
     border-top: 1px solid var(--vermilion);
     color: var(--dust-gold);
     font-family: var(--font-infra);
     font-size: clamp(0.9rem, 1.4vw, 1.2rem);
     letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.hero-tag {
+    margin: 0 0 1rem;
+    color: var(--dust-gray);
+    font-family: var(--font-infra);
+    font-size: clamp(0.9rem, 1.3vw, 1.1rem);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+
+.hero-summary {
+    width: min(760px, 100%);
+    color: var(--dust-gray);
+    font-size: clamp(1rem, 1.25vw, 1.18rem);
+    line-height: 1.75;
+}
+
+.hero-summary p {
+    margin-bottom: 0.85rem;
+}
+
+.hero-summary p:nth-last-child(-n + 2) {
+    color: var(--dust-gold);
+    font-family: var(--font-infra);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
 }
 
@@ -325,6 +353,40 @@ h3 {
 .prose p:last-child,
 .lead p:last-child {
     margin-bottom: 0;
+}
+
+.text-list {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0 0 1.5rem;
+    padding: 0;
+    color: var(--dust-gray);
+    list-style: none;
+}
+
+.text-list.columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 42rem;
+}
+
+.text-list li {
+    position: relative;
+    padding-left: 1rem;
+}
+
+.text-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.78em;
+    width: 0.32rem;
+    height: 0.32rem;
+    background: var(--vermilion-oxidized);
+}
+
+.section-note {
+    width: min(780px, 100%);
+    margin-bottom: 2rem;
 }
 
 .art-section {
@@ -579,6 +641,7 @@ figcaption {
 }
 
 .contact p {
+    margin-bottom: 0.9rem;
     color: var(--dust-gray);
 }
 
@@ -594,8 +657,9 @@ figcaption {
 }
 
 .site-footer {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr 1.4fr 1fr;
+    align-items: center;
     gap: 1rem;
     padding: 1rem clamp(1rem, 4vw, 3rem);
     color: var(--metadata-gray);
@@ -604,6 +668,7 @@ figcaption {
 }
 
 .site-footer strong {
+    text-align: right;
     color: var(--dust-gold);
     font-weight: 500;
 }
@@ -613,6 +678,14 @@ figcaption {
     .nav-links,
     .site-footer {
         flex-wrap: wrap;
+    }
+
+    .site-footer {
+        grid-template-columns: 1fr;
+    }
+
+    .site-footer strong {
+        text-align: left;
     }
 
     .section,
@@ -629,6 +702,10 @@ figcaption {
     .panel-grid,
     .materials-grid,
     .fragment-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .text-list.columns {
         grid-template-columns: 1fr;
     }
 
