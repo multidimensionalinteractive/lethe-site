@@ -32,7 +32,7 @@ window.addEventListener("scroll", () => {
         if (heroContent && scrollY < window.innerHeight) {
             heroContent.classList.add("is-scrolling");
             heroContent.style.transform = `translateY(${scrollY * 0.12}px)`;
-            heroContent.style.opacity = String(Math.max(0.7, 1 - (scrollY / (window.innerHeight * 2.8))));
+            heroContent.style.opacity = String(Math.max(0.3, 1 - (scrollY / window.innerHeight)));
             window.clearTimeout(heroSettleTimer);
             heroSettleTimer = window.setTimeout(settleHeroText, 260);
         } else {
