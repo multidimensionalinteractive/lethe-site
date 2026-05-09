@@ -11,13 +11,23 @@ document.querySelectorAll(".section, .art-section, .bibliography, .image-band, .
 });
 
 let ticking = false;
-let heroSettleTimer;
+const settleTimers = new WeakMap();
 
-function settleHeroText() {
-    const heroContent = document.querySelector(".hero-content");
-    if (!heroContent) return;
-    heroContent.classList.remove("is-scrolling");
-    heroContent.style.opacity = "1";
+function settleFadeTarget(target) {
+    if (!target) return;
+    target.classList.remove("is-scrolling");
+    target.style.opacity = "1";
+}
+
+function applyScrollFade(target, progress, transform) {
+    if (!target) return;
+    target.classList.add("is-scrolling");
+    if (transform) {
+        target.style.transform = transform;
+    }
+    target.style.opacity = String(Math.max(0.3, 1 - progress));
+    window.clearTimeout(settleTimers.get(target));
+    settleTimers.set(target, window.setTimeout(() => settleFadeTarget(target), 260));
 }
 
 window.addEventListener("scroll", () => {
@@ -27,20 +37,31 @@ window.addEventListener("scroll", () => {
         const scrollY = window.scrollY;
         const heroContent = document.querySelector(".hero-content");
         const heroImage = document.querySelector(".hero-image");
+        const witnessSection = document.querySelector(".witness-section");
         const nav = document.querySelector(".site-nav");
 
         if (heroContent && scrollY < window.innerHeight) {
-            heroContent.classList.add("is-scrolling");
-            heroContent.style.transform = `translateY(${scrollY * 0.12}px)`;
-            heroContent.style.opacity = String(Math.max(0.3, 1 - (scrollY / window.innerHeight)));
-            window.clearTimeout(heroSettleTimer);
-            heroSettleTimer = window.setTimeout(settleHeroText, 260);
+            applyScrollFade(heroContent, scrollY / window.innerHeight, `translateY(${scrollY * 0.12}px)`);
         } else {
-            settleHeroText();
+            settleFadeTarget(heroContent);
         }
 
         if (heroImage && scrollY < window.innerHeight) {
             heroImage.style.transform = `scale(1.04) translateY(${scrollY * 0.08}px)`;
+        }
+
+        if (witnessSection) {
+            const rect = witnessSection.getBoundingClientRect();
+            const isWitnessInView = rect.top < window.innerHeight && rect.bottom > 0;
+            if (isWitnessInView) {
+                const viewportCenter = window.innerHeight / 2;
+                const sectionCenter = rect.top + (rect.height / 2);
+                const distance = Math.abs(sectionCenter - viewportCenter);
+                const progress = Math.min(0.7, distance / window.innerHeight);
+                applyScrollFade(witnessSection, progress);
+            } else {
+                settleFadeTarget(witnessSection);
+            }
         }
 
         if (nav) {
