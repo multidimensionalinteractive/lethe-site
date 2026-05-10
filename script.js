@@ -15,6 +15,7 @@ const settleTimers = new WeakMap();
 let heroTitleWarmTimer;
 let witnessTitleWarmTimer;
 let ethicsTitleWarmTimer;
+let fragmentsTitleWarmTimer;
 
 function settleFadeTarget(target) {
     if (!target) return;
@@ -45,6 +46,8 @@ window.addEventListener("scroll", () => {
         const witnessTitle = document.querySelector(".witness-title");
         const ethicsSection = document.querySelector(".ethics");
         const ethicsTitle = document.querySelector(".ethics-title");
+        const fragmentsSection = document.querySelector(".fragments");
+        const fragmentsTitle = document.querySelector(".fragments-title");
         const nav = document.querySelector(".site-nav");
 
         if (heroContent && scrollY < window.innerHeight) {
@@ -103,6 +106,18 @@ window.addEventListener("scroll", () => {
                 window.clearTimeout(ethicsTitleWarmTimer);
                 ethicsTitleWarmTimer = window.setTimeout(() => {
                     ethicsTitle.classList.remove("is-warming");
+                }, 1100);
+            }
+        }
+
+        if (fragmentsTitle && fragmentsSection) {
+            const rect = fragmentsSection.getBoundingClientRect();
+            const isFragmentsInView = rect.top < window.innerHeight && rect.bottom > 0;
+            if (isFragmentsInView) {
+                fragmentsTitle.classList.add("is-warming");
+                window.clearTimeout(fragmentsTitleWarmTimer);
+                fragmentsTitleWarmTimer = window.setTimeout(() => {
+                    fragmentsTitle.classList.remove("is-warming");
                 }, 1100);
             }
         }
