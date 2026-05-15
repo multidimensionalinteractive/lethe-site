@@ -156,6 +156,22 @@ h2 {
     gap: 0.75rem;
 }
 
+.remember-row {
+    display: flex;
+    width: fit-content;
+    gap: 0.6rem;
+    align-items: center;
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.86rem;
+}
+
+.remember-row input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--gold);
+}
+
 .chat-header {
     justify-content: space-between;
     align-items: start;
@@ -409,6 +425,85 @@ button {
     color: var(--muted);
     font-family: var(--font-ui);
     font-size: 0.9rem;
+}
+
+.visitor-map-card {
+    margin: 1.25rem 0;
+    border: 1px solid rgba(241, 196, 15, 0.2);
+    background:
+        radial-gradient(circle at 18% 22%, rgba(231, 76, 60, 0.14), transparent 14rem),
+        radial-gradient(circle at 77% 18%, rgba(241, 196, 15, 0.1), transparent 18rem),
+        linear-gradient(135deg, rgba(39, 29, 51, 0.62), rgba(10, 8, 12, 0.82));
+}
+
+.visitor-map-wrap {
+    position: relative;
+    overflow: hidden;
+    min-height: 16rem;
+}
+
+.visitor-map {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 16rem;
+}
+
+.map-grid path {
+    fill: none;
+    stroke: rgba(168, 160, 173, 0.08);
+    stroke-width: 1;
+}
+
+.map-continents path {
+    fill: rgba(168, 160, 173, 0.08);
+    stroke: rgba(241, 196, 15, 0.18);
+    stroke-width: 1.2;
+}
+
+.visitor-dot {
+    fill: var(--red);
+    stroke: rgba(240, 236, 229, 0.86);
+    stroke-width: 1.5;
+    filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.65));
+}
+
+.visitor-halo {
+    fill: rgba(231, 76, 60, 0.18);
+    stroke: rgba(241, 196, 15, 0.2);
+    stroke-width: 1;
+}
+
+.visitor-label {
+    fill: var(--ink);
+    font-family: var(--font-header);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    paint-order: stroke;
+    stroke: rgba(19, 15, 24, 0.8);
+    stroke-width: 3px;
+    text-transform: uppercase;
+}
+
+.map-empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    background: rgba(19, 15, 24, 0.42);
+}
+
+.map-note {
+    margin: 0;
+    padding: 0.85rem 1rem;
+    color: var(--muted);
+    border-top: 1px solid rgba(241, 196, 15, 0.16);
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
 }
 
 @media (max-width: 820px) {

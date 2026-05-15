@@ -6,6 +6,8 @@ const sendButton = document.getElementById("send");
 const accessRow = document.getElementById("access-row");
 const accessCode = document.getElementById("access-code");
 const saveCode = document.getElementById("save-code");
+const rememberRow = document.getElementById("remember-row");
+const rememberAccess = document.getElementById("remember-access");
 const clearChat = document.getElementById("clear-chat");
 const generatePreview = document.getElementById("generate-preview");
 const pushProposal = document.getElementById("push-proposal");
@@ -19,10 +21,43 @@ const refreshVisits = document.getElementById("refresh-visits");
 const visitsTotal = document.getElementById("visits-total");
 const visitsCountries = document.getElementById("visits-countries");
 const countryList = document.getElementById("country-list");
+const visitorMapDots = document.getElementById("visitor-map-dots");
+const visitorMapEmpty = document.getElementById("visitor-map-empty");
+
+const rememberedAccess = localStorage.getItem("letheDashboardAccess") || sessionStorage.getItem("letheDashboardAccess") || "";
+
+const countryCoordinates = {
+    "United States": [-98, 39], US: [-98, 39],
+    Canada: [-106, 56], CA: [-106, 56],
+    Mexico: [-102, 23], MX: [-102, 23],
+    Brazil: [-52, -10], BR: [-52, -10],
+    Argentina: [-64, -34], AR: [-64, -34],
+    "United Kingdom": [-2, 54], GB: [-2, 54], UK: [-2, 54],
+    Ireland: [-8, 53], IE: [-8, 53],
+    France: [2, 46], FR: [2, 46],
+    Germany: [10, 51], DE: [10, 51],
+    Netherlands: [5, 52], NL: [5, 52],
+    Spain: [-4, 40], ES: [-4, 40],
+    Italy: [12, 43], IT: [12, 43],
+    Poland: [19, 52], PL: [19, 52],
+    Ukraine: [31, 49], UA: [31, 49],
+    Russia: [90, 61], RU: [90, 61],
+    Turkey: [35, 39], TR: [35, 39],
+    Israel: [35, 31], IL: [35, 31],
+    India: [78, 22], IN: [78, 22],
+    China: [104, 35], CN: [104, 35],
+    Japan: [138, 37], JP: [138, 37],
+    "South Korea": [128, 36], KR: [128, 36],
+    Australia: [134, -25], AU: [134, -25],
+    "New Zealand": [172, -42], NZ: [172, -42],
+    "South Africa": [24, -29], ZA: [24, -29],
+    Nigeria: [8, 9], NG: [8, 9],
+    Egypt: [30, 27], EG: [30, 27]
+};
 
 const state = {
     messages: [],
-    accessCode: sessionStorage.getItem("letheDashboardAccess") || "",
+    accessCode: rememberedAccess,
     latestRequest: "",
     proposalId: "",
     uploadedImage: null
@@ -30,6 +65,7 @@ const state = {
 
 function setDashboardUnlocked(isUnlocked) {
     accessRow.hidden = isUnlocked;
+    rememberRow.hidden = isUnlocked;
     composer.hidden = !isUnlocked;
     proposalPanel.hidden = !isUnlocked;
     uploadPreview.hidden = !isUnlocked || !state.uploadedImage;
@@ -85,7 +121,13 @@ async function unlockDashboard(code, { silent = false } = {}) {
     if (!response.ok) throw new Error(data.error || "Access code did not work.");
 
     state.accessCode = code;
-    sessionStorage.setItem("letheDashboardAccess", state.accessCode);
+    if (rememberAccess.checked) {
+        localStorage.setItem("letheDashboardAccess", state.accessCode);
+        sessionStorage.removeItem("letheDashboardAccess");
+    } else {
+        sessionStorage.setItem("letheDashboardAccess", state.accessCode);
+        localStorage.removeItem("letheDashboardAccess");
+    }
     setDashboardUnlocked(true);
     renderVisits(data);
     if (!silent) promptEl.focus();
@@ -102,6 +144,7 @@ saveCode.addEventListener("click", async () => {
         await unlockDashboard(code);
     } catch (error) {
         sessionStorage.removeItem("letheDashboardAccess");
+        localStorage.removeItem("letheDashboardAccess");
         state.accessCode = "";
         setDashboardUnlocked(false);
         addMessage("assistant", error.message, true);
@@ -306,6 +349,7 @@ function renderVisits(data) {
     visitsTotal.textContent = data.totalVisits;
     visitsCountries.textContent = data.countries.length;
     countryList.innerHTML = "";
+    renderVisitorMap(data.countries);
 
     if (!data.countries.length) {
         const empty = document.createElement("div");
@@ -327,12 +371,68 @@ function renderVisits(data) {
     });
 }
 
+function coordinateToPoint(lon, lat) {
+    return {
+        x: ((lon + 180) / 360) * 960,
+        y: ((90 - lat) / 180) * 500
+    };
+}
+
+function getCountryCoordinate(country) {
+    const name = country.country || "";
+    return countryCoordinates[name] || countryCoordinates[name.toUpperCase()] || null;
+}
+
+function renderVisitorMap(countries) {
+    visitorMapDots.innerHTML = "";
+    const mapped = countries
+        .map((country) => ({ ...country, coordinate: getCountryCoordinate(country) }))
+        .filter((country) => country.coordinate);
+
+    visitorMapEmpty.hidden = mapped.length > 0;
+
+    if (!mapped.length) return;
+
+    const maxCount = Math.max(...mapped.map((country) => country.count));
+    mapped.slice(0, 24).forEach((country) => {
+        const [lon, lat] = country.coordinate;
+        const point = coordinateToPoint(lon, lat);
+        const radius = 5 + Math.sqrt(country.count / maxCount) * 14;
+
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+        title.textContent = `${country.country}: ${country.count} visits`;
+
+        const halo = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        halo.setAttribute("class", "visitor-halo");
+        halo.setAttribute("cx", point.x);
+        halo.setAttribute("cy", point.y);
+        halo.setAttribute("r", radius * 1.9);
+
+        const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dot.setAttribute("class", "visitor-dot");
+        dot.setAttribute("cx", point.x);
+        dot.setAttribute("cy", point.y);
+        dot.setAttribute("r", radius);
+
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        label.setAttribute("class", "visitor-label");
+        label.setAttribute("x", point.x + radius + 5);
+        label.setAttribute("y", point.y + 4);
+        label.textContent = country.country.length > 14 ? country.country.slice(0, 12) : country.country;
+
+        group.append(title, halo, dot, label);
+        visitorMapDots.appendChild(group);
+    });
+}
+
 refreshVisits.addEventListener("click", loadVisits);
 
 if (state.accessCode) {
     accessCode.value = state.accessCode;
     unlockDashboard(state.accessCode, { silent: true }).catch(() => {
         sessionStorage.removeItem("letheDashboardAccess");
+        localStorage.removeItem("letheDashboardAccess");
         state.accessCode = "";
         accessCode.value = "";
         setDashboardUnlocked(false);

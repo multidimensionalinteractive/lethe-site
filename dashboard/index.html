@@ -41,6 +41,10 @@
                 <input id="access-code" type="password" autocomplete="current-password" placeholder="Access code">
                 <button id="save-code" type="button">Unlock</button>
             </div>
+            <label class="remember-row" id="remember-row">
+                <input id="remember-access" type="checkbox" checked>
+                <span>Keep me logged in on this browser</span>
+            </label>
 
             <div class="messages" id="messages" aria-live="polite">
                 <article class="message assistant">
@@ -93,6 +97,29 @@
                     <span class="visit-number" id="visits-countries">--</span>
                     <span class="visit-label">countries</span>
                 </div>
+            </div>
+            <div class="visitor-map-card">
+                <div class="visitor-map-wrap">
+                    <svg class="visitor-map" viewBox="0 0 960 500" role="img" aria-labelledby="visitor-map-title visitor-map-desc">
+                        <title id="visitor-map-title">Country-level visitor map</title>
+                        <desc id="visitor-map-desc">Approximate world map with dots for countries represented in visitor analytics.</desc>
+                        <g class="map-grid" aria-hidden="true">
+                            <path d="M0 83.33H960M0 166.66H960M0 250H960M0 333.33H960M0 416.66H960"></path>
+                            <path d="M120 0V500M240 0V500M360 0V500M480 0V500M600 0V500M720 0V500M840 0V500"></path>
+                        </g>
+                        <g class="map-continents" aria-hidden="true">
+                            <path d="M104 119C151 72 237 67 286 111C325 147 309 198 351 217C391 236 393 272 356 297C314 326 279 298 251 268C225 240 171 242 140 213C104 180 73 151 104 119Z"></path>
+                            <path d="M286 293C333 316 348 367 325 419C309 456 275 468 248 432C224 400 224 357 244 323C253 307 265 296 286 293Z"></path>
+                            <path d="M454 154C490 120 563 117 615 150C650 172 662 206 640 231C621 254 573 247 543 230C511 212 486 223 454 202C432 188 431 170 454 154Z"></path>
+                            <path d="M508 221C553 200 609 221 627 268C651 331 606 398 554 392C512 387 493 344 502 298C507 273 493 239 508 221Z"></path>
+                            <path d="M611 128C692 75 821 93 888 154C934 197 902 251 832 247C792 244 768 225 720 239C665 256 636 226 619 192C607 169 592 141 611 128Z"></path>
+                            <path d="M759 305C806 287 859 311 874 352C886 385 843 412 799 397C762 385 733 345 759 305Z"></path>
+                        </g>
+                        <g id="visitor-map-dots"></g>
+                    </svg>
+                    <p class="map-empty" id="visitor-map-empty" hidden>No mapped country signals yet.</p>
+                </div>
+                <p class="map-note">Dots are country-level approximations. Larger dots mean more visits.</p>
             </div>
             <div class="country-list" id="country-list"></div>
         </section>
