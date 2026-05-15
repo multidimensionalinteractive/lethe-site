@@ -119,7 +119,17 @@
                     </svg>
                     <p class="map-empty" id="visitor-map-empty" hidden>No mapped country signals yet.</p>
                 </div>
-                <p class="map-note">Dots are country-level approximations. Larger dots mean more visits.</p>
+                <aside class="visitor-map-detail" id="visitor-map-detail" aria-live="polite" hidden>
+                    <div class="map-detail-header">
+                        <div>
+                            <p class="eyebrow">VISITOR DETAIL</p>
+                            <h4 id="map-detail-title">Country</h4>
+                        </div>
+                        <button class="ghost-button compact-button" id="map-detail-close" type="button">Close</button>
+                    </div>
+                    <div class="map-detail-body" id="map-detail-body"></div>
+                </aside>
+                <p class="map-note">Click a dot or country row for town/region and recent visit details. Dots are approximate; larger dots mean more visits.</p>
             </div>
             <div class="country-list" id="country-list"></div>
         </section>

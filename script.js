@@ -134,7 +134,12 @@ if (window.location.pathname !== "/dashboard/" && !window.location.pathname.star
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             path: window.location.pathname,
-            referrer: document.referrer.slice(0, 300)
+            referrer: document.referrer.slice(0, 300),
+            language: navigator.language || "",
+            languages: Array.isArray(navigator.languages) ? navigator.languages.slice(0, 5) : [],
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+            viewport: `${window.innerWidth}x${window.innerHeight}`,
+            screen: window.screen ? `${window.screen.width}x${window.screen.height}` : ""
         }),
         keepalive: true
     }).catch(() => {});

@@ -23,6 +23,10 @@ const visitsCountries = document.getElementById("visits-countries");
 const countryList = document.getElementById("country-list");
 const visitorMapDots = document.getElementById("visitor-map-dots");
 const visitorMapEmpty = document.getElementById("visitor-map-empty");
+const visitorMapDetail = document.getElementById("visitor-map-detail");
+const mapDetailTitle = document.getElementById("map-detail-title");
+const mapDetailBody = document.getElementById("map-detail-body");
+const mapDetailClose = document.getElementById("map-detail-close");
 
 const rememberedAccess = localStorage.getItem("letheDashboardAccess") || sessionStorage.getItem("letheDashboardAccess") || "";
 
@@ -60,7 +64,8 @@ const state = {
     accessCode: rememberedAccess,
     latestRequest: "",
     proposalId: "",
-    uploadedImage: null
+    uploadedImage: null,
+    countries: []
 };
 
 function setDashboardUnlocked(isUnlocked) {
@@ -349,6 +354,7 @@ function renderVisits(data) {
     visitsTotal.textContent = data.totalVisits;
     visitsCountries.textContent = data.countries.length;
     countryList.innerHTML = "";
+    state.countries = data.countries;
     renderVisitorMap(data.countries);
 
     if (!data.countries.length) {
@@ -362,11 +368,21 @@ function renderVisits(data) {
     data.countries.slice(0, 8).forEach((country) => {
         const row = document.createElement("div");
         row.className = "country-row";
+        row.tabIndex = 0;
+        row.setAttribute("role", "button");
+        row.setAttribute("aria-label", `Show details for ${country.country}`);
         const name = document.createElement("span");
         name.textContent = country.country;
         const count = document.createElement("span");
         count.textContent = country.count;
         row.append(name, count);
+        row.addEventListener("click", () => showCountryDetail(country));
+        row.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                showCountryDetail(country);
+            }
+        });
         countryList.appendChild(row);
     });
 }
@@ -380,7 +396,10 @@ function coordinateToPoint(lon, lat) {
 
 function getCountryCoordinate(country) {
     const name = country.country || "";
-    return countryCoordinates[name] || countryCoordinates[name.toUpperCase()] || null;
+    if (Number.isFinite(country.longitude) && Number.isFinite(country.latitude)) {
+        return [country.longitude, country.latitude];
+    }
+    return countryCoordinates[name] || countryCoordinates[name.toUpperCase()] || countryCoordinates[country.countryCode] || null;
 }
 
 function renderVisitorMap(countries) {
@@ -400,6 +419,10 @@ function renderVisitorMap(countries) {
         const radius = 5 + Math.sqrt(country.count / maxCount) * 14;
 
         const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("class", "visitor-marker");
+        group.setAttribute("tabindex", "0");
+        group.setAttribute("role", "button");
+        group.setAttribute("aria-label", `Show visitor details for ${country.country}`);
         const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
         title.textContent = `${country.country}: ${country.count} visits`;
 
@@ -422,9 +445,99 @@ function renderVisitorMap(countries) {
         label.textContent = country.country.length > 14 ? country.country.slice(0, 12) : country.country;
 
         group.append(title, halo, dot, label);
+        group.addEventListener("click", () => showCountryDetail(country));
+        group.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                showCountryDetail(country);
+            }
+        });
         visitorMapDots.appendChild(group);
     });
 }
+
+function formatLocation(entry) {
+    return [entry.city, entry.region].filter(Boolean).join(", ") || "Unknown town/region";
+}
+
+function formatVisitTime(value) {
+    if (!value) return "Unknown time";
+    try {
+        return new Intl.DateTimeFormat(undefined, {
+            dateStyle: "medium",
+            timeStyle: "short"
+        }).format(new Date(value));
+    } catch {
+        return value;
+    }
+}
+
+function createDetailSection(title, items, emptyText) {
+    const section = document.createElement("section");
+    section.className = "map-detail-section";
+    const heading = document.createElement("h5");
+    heading.textContent = title;
+    section.appendChild(heading);
+
+    if (!items.length) {
+        const empty = document.createElement("p");
+        empty.className = "map-detail-note";
+        empty.textContent = emptyText;
+        section.appendChild(empty);
+        return section;
+    }
+
+    items.forEach((item) => section.appendChild(item));
+    return section;
+}
+
+function showCountryDetail(country) {
+    mapDetailTitle.textContent = `${country.country} / ${country.count} visit${country.count === 1 ? "" : "s"}`;
+    mapDetailBody.innerHTML = "";
+
+    const cityRows = (country.cities || []).slice(0, 10).map((city) => {
+        const row = document.createElement("div");
+        row.className = "map-detail-row";
+        const name = document.createElement("span");
+        name.textContent = formatLocation(city);
+        const count = document.createElement("span");
+        count.textContent = city.count;
+        row.append(name, count);
+        return row;
+    });
+
+    const visitRows = (country.recent || []).slice(0, 8).map((visit) => {
+        const row = document.createElement("div");
+        row.className = "map-detail-visit";
+        const title = document.createElement("strong");
+        title.textContent = `${formatVisitTime(visit.ts)} / ${formatLocation(visit)}`;
+        const path = document.createElement("span");
+        path.textContent = `Page: ${visit.path || "/"}`;
+        const source = document.createElement("span");
+        source.textContent = `Source: ${visit.referrer || "direct / unknown"}`;
+        const device = document.createElement("span");
+        device.textContent = `Device: ${visit.device || "unknown"}${visit.browser ? ` / ${visit.browser}` : ""}`;
+        const locale = document.createElement("span");
+        locale.textContent = `Locale: ${[visit.language, visit.timezone].filter(Boolean).join(" / ") || "unknown"}`;
+        row.append(title, path, source, device, locale);
+        return row;
+    });
+
+    const note = document.createElement("p");
+    note.className = "map-detail-note";
+    note.textContent = "Gender, identity, names, and exact locations are not provided by browsers and are not collected here.";
+
+    mapDetailBody.append(
+        createDetailSection("Towns / regions", cityRows, "Town and region details will appear for visits recorded after the enriched tracking update."),
+        createDetailSection("Recent visits", visitRows, "Recent visit details will appear after new traffic is recorded."),
+        note
+    );
+    visitorMapDetail.hidden = false;
+}
+
+mapDetailClose.addEventListener("click", () => {
+    visitorMapDetail.hidden = true;
+});
 
 refreshVisits.addEventListener("click", loadVisits);
 

@@ -31,8 +31,40 @@ const ALLOWED_ORIGINS = new Set([
     "https://youarestillinsideit.com",
     "https://www.youarestillinsideit.com",
     "http://127.0.0.1:4173",
-    "http://localhost:4173"
+    "http://localhost:4173",
+    "http://127.0.0.1:4174",
+    "http://localhost:4174"
 ]);
+
+const COUNTRY_NAMES = {
+    US: "United States",
+    CA: "Canada",
+    MX: "Mexico",
+    BR: "Brazil",
+    AR: "Argentina",
+    GB: "United Kingdom",
+    UK: "United Kingdom",
+    IE: "Ireland",
+    FR: "France",
+    DE: "Germany",
+    NL: "Netherlands",
+    ES: "Spain",
+    IT: "Italy",
+    PL: "Poland",
+    UA: "Ukraine",
+    RU: "Russia",
+    TR: "Turkey",
+    IL: "Israel",
+    IN: "India",
+    CN: "China",
+    JP: "Japan",
+    KR: "South Korea",
+    AU: "Australia",
+    NZ: "New Zealand",
+    ZA: "South Africa",
+    NG: "Nigeria",
+    EG: "Egypt"
+};
 
 const systemPrompt = `You are a careful website editing assistant for Chanel's art site, YOU ARE STILL INSIDE IT - LETHE.
 
@@ -431,6 +463,31 @@ function getCountry(request) {
     return country && country !== "XX" ? country.toUpperCase() : "Unknown";
 }
 
+function countryNameFromCode(code) {
+    return COUNTRY_NAMES[String(code || "").toUpperCase()] || "";
+}
+
+function sanitizeText(value, maxLength = 200) {
+    return String(value || "").replace(/\s+/g, " ").trim().slice(0, maxLength);
+}
+
+function summarizeUserAgent(userAgent) {
+    const ua = String(userAgent || "");
+    const browser = /Edg\//.test(ua) ? "Edge"
+        : /Chrome\//.test(ua) ? "Chrome"
+        : /Firefox\//.test(ua) ? "Firefox"
+        : /Safari\//.test(ua) ? "Safari"
+        : "Unknown browser";
+    const platform = /Windows/.test(ua) ? "Windows"
+        : /Mac OS X|Macintosh/.test(ua) ? "macOS"
+        : /Android/.test(ua) ? "Android"
+        : /iPhone|iPad/.test(ua) ? "iOS"
+        : /Linux/.test(ua) ? "Linux"
+        : "Unknown platform";
+    const device = /Mobi|Android|iPhone|iPad/.test(ua) ? "mobile/tablet" : "desktop";
+    return { browser, platform, device };
+}
+
 function isPublicIp(ip) {
     if (!ip || ip === "::1" || ip === "127.0.0.1") return false;
     if (/^(10|127)\./.test(ip)) return false;
@@ -452,32 +509,94 @@ async function writeCountryCache(cache) {
     await fs.writeFile(COUNTRY_CACHE_FILE, JSON.stringify(cache, null, 2));
 }
 
-async function lookupCountry(ip, requestCountry) {
-    if (requestCountry !== "Unknown") return requestCountry;
-    if (!isPublicIp(ip)) return "Unknown";
+async function lookupGeo(ip, requestCountry) {
+    const requestCountryCode = requestCountry !== "Unknown" ? requestCountry : "";
+    const requestCountryName = countryNameFromCode(requestCountryCode) || requestCountryCode || "Unknown";
+    if (!isPublicIp(ip)) {
+        return {
+            country: requestCountryName,
+            countryCode: requestCountryCode,
+            region: "",
+            city: "",
+            latitude: null,
+            longitude: null,
+            timezone: ""
+        };
+    }
 
     const cacheKey = ip.replace(/(\d+\.\d+)\.\d+\.\d+$/, "$1.0.0");
     const cache = await readCountryCache();
-    if (cache[cacheKey]) return cache[cacheKey];
+    if (cache[cacheKey]) {
+        if (typeof cache[cacheKey] === "string") {
+            return {
+                country: countryNameFromCode(cache[cacheKey]) || cache[cacheKey],
+                countryCode: COUNTRY_NAMES[cache[cacheKey]] ? cache[cacheKey] : "",
+                region: "",
+                city: "",
+                latitude: null,
+                longitude: null,
+                timezone: ""
+            };
+        }
+        return cache[cacheKey];
+    }
 
     try {
-        const response = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,countryCode`);
+        const response = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,countryCode,regionName,city,lat,lon,timezone`);
         const data = await response.json();
-        const country = data?.status === "success" && data?.country ? data.country : "Unknown";
-        cache[cacheKey] = country;
+        const geo = data?.status === "success" ? {
+            country: data.country || requestCountryName,
+            countryCode: data.countryCode || requestCountryCode,
+            region: data.regionName || "",
+            city: data.city || "",
+            latitude: Number.isFinite(data.lat) ? data.lat : null,
+            longitude: Number.isFinite(data.lon) ? data.lon : null,
+            timezone: data.timezone || ""
+        } : {
+            country: requestCountryName,
+            countryCode: requestCountryCode,
+            region: "",
+            city: "",
+            latitude: null,
+            longitude: null,
+            timezone: ""
+        };
+        cache[cacheKey] = geo;
         await writeCountryCache(cache);
-        return country;
+        return geo;
     } catch {
-        return "Unknown";
+        return {
+            country: requestCountryName,
+            countryCode: requestCountryCode,
+            region: "",
+            city: "",
+            latitude: null,
+            longitude: null,
+            timezone: ""
+        };
     }
 }
 
 async function trackVisit(request, payload) {
     const ip = getClientIp(request);
-    const country = await lookupCountry(ip, getCountry(request));
+    const geo = await lookupGeo(ip, getCountry(request));
+    const agent = summarizeUserAgent(request.headers["user-agent"]);
     const entry = {
         ts: new Date().toISOString(),
-        country,
+        country: geo.country || "Unknown",
+        countryCode: geo.countryCode || "",
+        region: sanitizeText(geo.region, 120),
+        city: sanitizeText(geo.city, 120),
+        latitude: geo.latitude,
+        longitude: geo.longitude,
+        timezone: sanitizeText(payload?.timezone || geo.timezone, 120),
+        language: sanitizeText(payload?.language || request.headers["accept-language"], 120),
+        languages: Array.isArray(payload?.languages) ? payload.languages.slice(0, 5).map((language) => sanitizeText(language, 40)) : [],
+        viewport: sanitizeText(payload?.viewport, 40),
+        screen: sanitizeText(payload?.screen, 40),
+        browser: agent.browser,
+        platform: agent.platform,
+        device: agent.device,
         path: String(payload?.path || "/").slice(0, 200),
         referrer: String(payload?.referrer || "").slice(0, 300),
         ipPrefix: ip.replace(/(\d+\.\d+)\.\d+\.\d+$/, "$1.0.0")
@@ -503,15 +622,66 @@ async function getVisitSummary() {
         try {
             const visit = JSON.parse(line);
             totalVisits += 1;
-            const country = visit.country || "Unknown";
-            countryCounts.set(country, (countryCounts.get(country) || 0) + 1);
+            const countryCode = sanitizeText(visit.countryCode, 12).toUpperCase();
+            const country = sanitizeText(countryNameFromCode(countryCode) || visit.country || "Unknown", 80);
+            const countryKey = countryCode || country;
+            const current = countryCounts.get(countryKey) || {
+                country,
+                countryCode,
+                count: 0,
+                cities: new Map(),
+                recent: [],
+                latitude: null,
+                longitude: null
+            };
+            current.count += 1;
+            if (Number.isFinite(visit.latitude) && Number.isFinite(visit.longitude) && current.latitude === null) {
+                current.latitude = visit.latitude;
+                current.longitude = visit.longitude;
+            }
+
+            const city = sanitizeText(visit.city, 100);
+            const region = sanitizeText(visit.region, 100);
+            const cityKey = city || region || "Unknown area";
+            const cityCurrent = current.cities.get(cityKey) || { city, region, count: 0, latest: "" };
+            cityCurrent.count += 1;
+            cityCurrent.latest = visit.ts || cityCurrent.latest;
+            current.cities.set(cityKey, cityCurrent);
+
+            current.recent.push({
+                ts: visit.ts || "",
+                city,
+                region,
+                path: sanitizeText(visit.path || "/", 200),
+                referrer: sanitizeText(visit.referrer, 160),
+                browser: sanitizeText(visit.browser, 80),
+                platform: sanitizeText(visit.platform, 80),
+                device: sanitizeText(visit.device, 80),
+                language: sanitizeText(visit.language, 80),
+                timezone: sanitizeText(visit.timezone, 80)
+            });
+            if (current.recent.length > 25) current.recent.shift();
+            countryCounts.set(countryKey, current);
         } catch {
             // Ignore malformed historical rows.
         }
     }
 
-    const countries = [...countryCounts.entries()]
-        .map(([country, count]) => ({ country, count }))
+    const countries = [...countryCounts.values()]
+        .map((country) => ({
+            country: country.country,
+            countryCode: country.countryCode,
+            count: country.count,
+            latitude: country.latitude,
+            longitude: country.longitude,
+            cities: [...country.cities.values()]
+                .sort((a, b) => b.count - a.count || `${a.city}${a.region}`.localeCompare(`${b.city}${b.region}`))
+                .slice(0, 12),
+            recent: country.recent
+                .slice()
+                .sort((a, b) => String(b.ts).localeCompare(String(a.ts)))
+                .slice(0, 12)
+        }))
         .sort((a, b) => b.count - a.count || a.country.localeCompare(b.country));
 
     return { totalVisits, countries };
