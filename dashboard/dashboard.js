@@ -9,6 +9,7 @@ const saveCode = document.getElementById("save-code");
 const clearChat = document.getElementById("clear-chat");
 const generatePreview = document.getElementById("generate-preview");
 const pushProposal = document.getElementById("push-proposal");
+const proposalPanel = document.getElementById("proposal-panel");
 const pushStatus = document.getElementById("push-status");
 const proposalSummary = document.getElementById("proposal-summary");
 const proposalPreview = document.getElementById("proposal-preview");
@@ -27,9 +28,14 @@ const state = {
     uploadedImage: null
 };
 
-if (state.accessCode) {
-    accessRow.style.display = "none";
+function setDashboardUnlocked(isUnlocked) {
+    accessRow.hidden = isUnlocked;
+    composer.hidden = !isUnlocked;
+    proposalPanel.hidden = !isUnlocked;
+    uploadPreview.hidden = !isUnlocked || !state.uploadedImage;
 }
+
+setDashboardUnlocked(false);
 
 function addMessage(role, text, isError = false) {
     state.messages.push({ role, content: text });
@@ -71,12 +77,39 @@ function renderUploadedImage() {
     uploadPreview.hidden = false;
 }
 
-saveCode.addEventListener("click", () => {
-    state.accessCode = accessCode.value.trim();
-    if (!state.accessCode) return;
+async function unlockDashboard(code, { silent = false } = {}) {
+    const response = await fetch(`${API_BASE}/api/visits`, {
+        headers: { "X-Lethe-Access": code }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Access code did not work.");
+
+    state.accessCode = code;
     sessionStorage.setItem("letheDashboardAccess", state.accessCode);
-    accessRow.style.display = "none";
-    promptEl.focus();
+    setDashboardUnlocked(true);
+    renderVisits(data);
+    if (!silent) promptEl.focus();
+}
+
+saveCode.addEventListener("click", async () => {
+    const code = accessCode.value.trim();
+    if (!code) return;
+
+    saveCode.disabled = true;
+    saveCode.textContent = "Checking";
+
+    try {
+        await unlockDashboard(code);
+    } catch (error) {
+        sessionStorage.removeItem("letheDashboardAccess");
+        state.accessCode = "";
+        setDashboardUnlocked(false);
+        addMessage("assistant", error.message, true);
+        accessCode.focus();
+    } finally {
+        saveCode.disabled = false;
+        saveCode.textContent = "Unlock";
+    }
 });
 
 clearChat.addEventListener("click", () => {
@@ -259,28 +292,7 @@ async function loadVisits() {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || "Could not load visits.");
 
-        visitsTotal.textContent = data.totalVisits;
-        visitsCountries.textContent = data.countries.length;
-        countryList.innerHTML = "";
-
-        if (!data.countries.length) {
-            const empty = document.createElement("div");
-            empty.className = "country-row";
-            empty.textContent = "No visits recorded yet.";
-            countryList.appendChild(empty);
-            return;
-        }
-
-        data.countries.slice(0, 8).forEach((country) => {
-            const row = document.createElement("div");
-            row.className = "country-row";
-            const name = document.createElement("span");
-            name.textContent = country.country;
-            const count = document.createElement("span");
-            count.textContent = country.count;
-            row.append(name, count);
-            countryList.appendChild(row);
-        });
+        renderVisits(data);
     } catch (error) {
         countryList.innerHTML = "";
         const row = document.createElement("div");
@@ -290,8 +302,39 @@ async function loadVisits() {
     }
 }
 
+function renderVisits(data) {
+    visitsTotal.textContent = data.totalVisits;
+    visitsCountries.textContent = data.countries.length;
+    countryList.innerHTML = "";
+
+    if (!data.countries.length) {
+        const empty = document.createElement("div");
+        empty.className = "country-row";
+        empty.textContent = "No visits recorded yet.";
+        countryList.appendChild(empty);
+        return;
+    }
+
+    data.countries.slice(0, 8).forEach((country) => {
+        const row = document.createElement("div");
+        row.className = "country-row";
+        const name = document.createElement("span");
+        name.textContent = country.country;
+        const count = document.createElement("span");
+        count.textContent = country.count;
+        row.append(name, count);
+        countryList.appendChild(row);
+    });
+}
+
 refreshVisits.addEventListener("click", loadVisits);
 
 if (state.accessCode) {
-    loadVisits();
+    accessCode.value = state.accessCode;
+    unlockDashboard(state.accessCode, { silent: true }).catch(() => {
+        sessionStorage.removeItem("letheDashboardAccess");
+        state.accessCode = "";
+        accessCode.value = "";
+        setDashboardUnlocked(false);
+    });
 }
