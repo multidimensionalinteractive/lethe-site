@@ -476,6 +476,11 @@ button {
 
 .visitor-marker {
     cursor: pointer;
+    pointer-events: all;
+}
+
+.visitor-marker * {
+    pointer-events: all;
 }
 
 .visitor-marker:focus .visitor-dot,

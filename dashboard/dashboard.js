@@ -68,6 +68,8 @@ const state = {
     countries: []
 };
 
+const mapCountryByKey = new Map();
+
 function setDashboardUnlocked(isUnlocked) {
     accessRow.hidden = isUnlocked;
     rememberRow.hidden = isUnlocked;
@@ -404,6 +406,7 @@ function getCountryCoordinate(country) {
 
 function renderVisitorMap(countries) {
     visitorMapDots.innerHTML = "";
+    mapCountryByKey.clear();
     const mapped = countries
         .map((country) => ({ ...country, coordinate: getCountryCoordinate(country) }))
         .filter((country) => country.coordinate);
@@ -417,12 +420,15 @@ function renderVisitorMap(countries) {
         const [lon, lat] = country.coordinate;
         const point = coordinateToPoint(lon, lat);
         const radius = 5 + Math.sqrt(country.count / maxCount) * 14;
+        const countryKey = country.countryCode || country.country;
+        mapCountryByKey.set(countryKey, country);
 
         const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
         group.setAttribute("class", "visitor-marker");
         group.setAttribute("tabindex", "0");
         group.setAttribute("role", "button");
         group.setAttribute("aria-label", `Show visitor details for ${country.country}`);
+        group.setAttribute("data-country-key", countryKey);
         const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
         title.textContent = `${country.country}: ${country.count} visits`;
 
@@ -445,7 +451,6 @@ function renderVisitorMap(countries) {
         label.textContent = country.country.length > 14 ? country.country.slice(0, 12) : country.country;
 
         group.append(title, halo, dot, label);
-        group.addEventListener("click", () => showCountryDetail(country));
         group.addEventListener("keydown", (event) => {
             if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
@@ -455,6 +460,13 @@ function renderVisitorMap(countries) {
         visitorMapDots.appendChild(group);
     });
 }
+
+visitorMapDots.addEventListener("click", (event) => {
+    const marker = event.target.closest(".visitor-marker");
+    if (!marker) return;
+    const country = mapCountryByKey.get(marker.getAttribute("data-country-key"));
+    if (country) showCountryDetail(country);
+});
 
 function formatLocation(entry) {
     return [entry.city, entry.region].filter(Boolean).join(", ") || "Unknown town/region";
@@ -533,6 +545,7 @@ function showCountryDetail(country) {
         note
     );
     visitorMapDetail.hidden = false;
+    visitorMapDetail.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
 
 mapDetailClose.addEventListener("click", () => {
