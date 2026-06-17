@@ -80,7 +80,7 @@ a {
     z-index: 20;
     display: flex;
     justify-content: space-between;
-    gap: 2rem;
+    gap: clamp(0.8rem, 2vw, 2rem);
     padding: 1rem clamp(1rem, 4vw, 3rem);
     border-bottom: 1px solid rgba(138,135,124,0.09);
     background: rgba(26,27,29,0.82);
@@ -101,6 +101,7 @@ a {
     align-items: center;
     color: var(--dust-gold);
     transition: color 900ms ease, text-shadow 900ms ease;
+    white-space: nowrap;
 }
 
 .nav-mark img {
@@ -115,8 +116,10 @@ a {
 
 .nav-links {
     display: flex;
-    gap: clamp(1rem, 3vw, 2.4rem);
+    gap: clamp(0.7rem, 2.1vw, 2.1rem);
     color: var(--dust-gray);
+    align-items: center;
+    white-space: nowrap;
 }
 
 .nav-links a:hover {
@@ -663,6 +666,10 @@ figcaption {
     padding: clamp(4rem, 8vw, 7rem) clamp(1rem, 5vw, 5rem);
 }
 
+.dispatches-index {
+    padding: clamp(4rem, 8vw, 7rem) clamp(1rem, 5vw, 5rem);
+}
+
 .observation-list {
     display: grid;
     gap: 1px;
@@ -712,6 +719,71 @@ figcaption {
 .observation-card p {
     width: min(620px, 100%);
     margin-bottom: 0;
+}
+
+.dispatch-list {
+    display: grid;
+    gap: 1px;
+    width: min(1080px, 100%);
+    border: 1px solid var(--line);
+    background: var(--line);
+}
+
+.dispatch-card,
+.dispatch-empty {
+    display: grid;
+    gap: clamp(1rem, 3vw, 2rem);
+    padding: clamp(1.25rem, 3vw, 2rem);
+    background:
+        linear-gradient(90deg, rgba(161,49,36,0.11), transparent 42%),
+        rgba(32,33,36,0.9);
+    color: var(--dust-gray);
+    text-decoration: none;
+}
+
+.dispatch-card {
+    grid-template-columns: minmax(7rem, 0.35fr) minmax(0, 1fr) auto;
+    align-items: start;
+}
+
+.dispatch-card:hover {
+    color: var(--dust-gold);
+}
+
+.dispatch-number,
+.dispatch-status,
+.dispatch-date {
+    font-family: var(--font-infra);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.dispatch-number {
+    color: var(--vermilion-oxidized);
+}
+
+.dispatch-status,
+.dispatch-date {
+    color: var(--metadata-gray);
+}
+
+.dispatch-card h2,
+.dispatch-empty h2 {
+    margin-bottom: 0.75rem;
+    font-size: clamp(1.5rem, 3vw, 3rem);
+}
+
+.dispatch-card p {
+    width: min(620px, 100%);
+    margin-bottom: 0;
+}
+
+.dispatch-entry-hero {
+    background:
+        linear-gradient(90deg, rgba(26,27,29,0.95), rgba(26,27,29,0.64)),
+        radial-gradient(circle at 78% 16%, rgba(161,49,36,0.18), transparent 30rem),
+        url("assets/barikardy-factory-november-1942.jpg") center / cover no-repeat;
 }
 
 .fragment-grid {
@@ -818,7 +890,8 @@ figcaption {
     .panel-grid,
     .materials-grid,
     .fragment-grid,
-    .observation-card {
+    .observation-card,
+    .dispatch-card {
         grid-template-columns: 1fr;
     }
 
@@ -930,6 +1003,21 @@ figcaption {
 
 .marker-grid img {
     aspect-ratio: 1 / 1.14;
+}
+
+.marker-grid figure {
+    overflow: hidden;
+}
+
+.marker-grid img {
+    cursor: zoom-in;
+    transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1), filter 700ms ease;
+}
+
+.marker-grid figure:hover img,
+.marker-grid figure:focus-within img {
+    transform: scale(1.045);
+    filter: saturate(0.98) contrast(1.08) brightness(1.04);
 }
 
 .marker-red {
@@ -1052,5 +1140,106 @@ figcaption {
     .marker-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+}
+
+@media (max-width: 1180px) {
+    .site-nav {
+        padding-inline: clamp(0.75rem, 2vw, 1.4rem);
+        font-size: 0.66rem;
+        letter-spacing: 0.12em;
+    }
+
+    .nav-mark {
+        gap: 0.5rem;
+    }
+
+    .nav-mark span {
+        max-width: 23ch;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .nav-links {
+        gap: clamp(0.5rem, 1.25vw, 0.95rem);
+    }
+}
+
+@media (max-width: 980px) {
+    .site-nav {
+        font-size: 0.62rem;
+        letter-spacing: 0.09em;
+    }
+
+    .nav-mark span {
+        max-width: 19ch;
+    }
+}
+
+.image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: clamp(1rem, 3vw, 2.5rem);
+    background: rgba(10, 10, 10, 0.88);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 260ms ease;
+}
+
+.image-lightbox.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.image-lightbox-inner {
+    width: min(1080px, 100%);
+}
+
+.image-lightbox img {
+    width: 100%;
+    max-height: 82vh;
+    object-fit: contain;
+    border: 1px solid var(--line-strong);
+    background: var(--asphalt);
+    box-shadow: 0 1.5rem 4rem rgba(0,0,0,0.55);
+    transform: scale(0.965);
+    transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.image-lightbox.is-open img {
+    transform: scale(1);
+}
+
+.image-lightbox-caption {
+    margin: 0.8rem 0 0;
+    color: var(--dust-gray);
+    font-family: var(--font-infra);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.image-lightbox-close {
+    position: absolute;
+    top: clamp(0.9rem, 2vw, 1.5rem);
+    right: clamp(0.9rem, 2vw, 1.5rem);
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    background: rgba(26,27,29,0.86);
+    color: var(--dust-gold);
+    cursor: pointer;
+    font-family: var(--font-infra);
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.image-lightbox-close:hover,
+.image-lightbox-close:focus {
+    border-color: var(--vermilion);
+    color: var(--vermilion);
 }
 

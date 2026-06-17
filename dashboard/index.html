@@ -6,7 +6,7 @@
     <title>LETHE Dashboard</title>
     <link rel="icon" type="image/jpeg" href="../assets/favicon-lethe.jpg">
     <link rel="apple-touch-icon" href="../assets/favicon-lethe.jpg">
-    <link rel="stylesheet" href="dashboard.css?v=visitor-detail-click-20260515">
+    <link rel="stylesheet" href="dashboard.css?v=entries-dispatches-20260616">
 </head>
 <body>
     <main class="dashboard-shell">
@@ -78,6 +78,40 @@
                     <button id="push-proposal" type="button" disabled>Push Preview Live</button>
                 </div>
             </section>
+
+            <section class="entries-panel" id="entries-panel" aria-label="Entries manager" hidden>
+                <div class="entries-header">
+                    <div>
+                        <p class="eyebrow">ENTRIES</p>
+                        <h3>Published Dispatches</h3>
+                    </div>
+                    <button class="ghost-button compact-button" id="new-entry" type="button">New Entry</button>
+                </div>
+
+                <div class="entry-editor">
+                    <input id="entry-title" type="text" placeholder="Entry title">
+                    <input id="entry-slug" type="text" placeholder="URL slug">
+                    <textarea id="entry-excerpt" rows="2" placeholder="Short excerpt for the Dispatches index"></textarea>
+                    <textarea id="entry-content" rows="10" placeholder="Entry body. Use blank lines between paragraphs. Use ## for section headings."></textarea>
+                    <div class="entry-actions">
+                        <button id="save-entry-draft" type="button">Save Draft</button>
+                        <button id="publish-entry" type="button">Publish</button>
+                        <button class="ghost-button" id="delete-entry" type="button" disabled>Delete</button>
+                    </div>
+                    <p class="push-status" id="entry-status"></p>
+                </div>
+
+                <div class="entry-lists">
+                    <section>
+                        <p class="eyebrow">DRAFT ENTRIES</p>
+                        <div class="entry-list" id="draft-entry-list"></div>
+                    </section>
+                    <section>
+                        <p class="eyebrow">PUBLISHED DISPATCHES</p>
+                        <div class="entry-list" id="published-entry-list"></div>
+                    </section>
+                </div>
+            </section>
         </section>
 
         <section class="visits-panel" aria-label="Visitor overview">
@@ -135,6 +169,6 @@
         </section>
     </main>
 
-    <script src="dashboard.js?v=visitor-detail-click-20260515"></script>
+    <script src="dashboard.js?v=entries-dispatches-20260616"></script>
 </body>
 </html>

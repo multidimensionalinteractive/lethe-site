@@ -12,6 +12,7 @@ const {
     extractJsonObject,
     summarizeOperations
 } = require("./proposal-engine");
+const { normalizeEntry, renderDispatchFiles } = require("./entry-renderer");
 
 const PORT = Number(process.env.PORT || 8787);
 const ACCESS_CODE = process.env.LETHE_DASHBOARD_ACCESS || "";
@@ -27,6 +28,7 @@ const REPO_BRANCH = process.env.LETHE_REPO_BRANCH || "master";
 const VISITS_FILE = process.env.LETHE_VISITS_FILE || "/var/lib/lethe-dashboard/visits.jsonl";
 const COUNTRY_CACHE_FILE = process.env.LETHE_COUNTRY_CACHE_FILE || "/var/lib/lethe-dashboard/country-cache.json";
 const PROPOSALS_DIR = process.env.LETHE_PROPOSALS_DIR || "/var/lib/lethe-dashboard/proposals";
+const ENTRIES_FILE = process.env.LETHE_ENTRIES_FILE || "/var/lib/lethe-dashboard/entries.json";
 const ALLOWED_ORIGINS = new Set([
     "https://youarestillinsideit.com",
     "https://www.youarestillinsideit.com",
@@ -451,6 +453,106 @@ async function pushProposal(payload) {
     };
 }
 
+async function readEntries() {
+    try {
+        const raw = await fs.readFile(ENTRIES_FILE, "utf8");
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed.entries) ? parsed.entries : [];
+    } catch (error) {
+        if (error.code === "ENOENT") return [];
+        throw error;
+    }
+}
+
+async function writeEntries(entries) {
+    await fs.mkdir(path.dirname(ENTRIES_FILE), { recursive: true });
+    await fs.writeFile(ENTRIES_FILE, JSON.stringify({ entries }, null, 2));
+}
+
+function listEntries(entries) {
+    return entries
+        .slice()
+        .sort((a, b) => String(b.updatedAt || b.createdAt).localeCompare(String(a.updatedAt || a.createdAt)));
+}
+
+async function saveEntry(payload, forcedStatus = "draft") {
+    const entries = await readEntries();
+    const existing = entries.find((entry) => entry.id === payload?.id) || {};
+    const entry = normalizeEntry({ ...payload, status: forcedStatus }, existing);
+    const slugConflict = entries.find((candidate) => candidate.slug === entry.slug && candidate.id !== entry.id);
+    if (slugConflict) {
+        throw new Error(`Another entry already uses the slug: ${entry.slug}`);
+    }
+
+    const nextEntries = entries.some((candidate) => candidate.id === entry.id)
+        ? entries.map((candidate) => candidate.id === entry.id ? entry : candidate)
+        : [entry, ...entries];
+
+    await writeEntries(nextEntries);
+    return { entry, entries: listEntries(nextEntries) };
+}
+
+async function writeDispatchFiles(entries) {
+    await ensureWorktree();
+
+    const publishedSlugs = new Set(entries.filter((entry) => entry.status === "published").map((entry) => entry.slug));
+    const dispatchRoot = path.join(WORKTREE, "dispatches");
+    await fs.mkdir(dispatchRoot, { recursive: true });
+
+    const currentChildren = await fs.readdir(dispatchRoot, { withFileTypes: true }).catch(() => []);
+    for (const child of currentChildren) {
+        if (child.isDirectory() && !publishedSlugs.has(child.name)) {
+            await fs.rm(path.join(dispatchRoot, child.name), { recursive: true, force: true });
+        }
+    }
+
+    const files = renderDispatchFiles(entries);
+    for (const [file, content] of files.entries()) {
+        const filePath = path.join(WORKTREE, file);
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await fs.writeFile(filePath, content);
+    }
+
+    await runGit(["add", "-A", "dispatches"], { cwd: WORKTREE });
+    const status = await runGit(["status", "--porcelain", "--", "dispatches"], { cwd: WORKTREE });
+    if (!status.stdout.trim()) {
+        return { commit: "", changedFiles: [] };
+    }
+
+    await runGit(["commit", "-m", "Update Lethe dispatches"], { cwd: WORKTREE });
+    const commit = await runGit(["rev-parse", "--short", "HEAD"], { cwd: WORKTREE });
+    await runGit(["push", "origin", REPO_BRANCH], { cwd: WORKTREE });
+
+    return {
+        commit: commit.stdout.trim(),
+        changedFiles: [...files.keys()]
+    };
+}
+
+async function publishEntry(payload) {
+    const saved = await saveEntry(payload, "published");
+    const push = await writeDispatchFiles(saved.entries);
+    return { ...saved, ...push };
+}
+
+async function deleteEntry(payload) {
+    const id = String(payload?.id || "");
+    if (!id) throw new Error("Entry ID is required.");
+
+    const entries = await readEntries();
+    const entry = entries.find((candidate) => candidate.id === id);
+    if (!entry) throw new Error("Entry not found.");
+
+    const nextEntries = entries.filter((candidate) => candidate.id !== id);
+    await writeEntries(nextEntries);
+
+    const push = entry.status === "published"
+        ? await writeDispatchFiles(nextEntries)
+        : { commit: "", changedFiles: [] };
+
+    return { deletedId: id, entries: listEntries(nextEntries), ...push };
+}
+
 function getClientIp(request) {
     const forwarded = String(request.headers["x-forwarded-for"] || "").split(",")[0].trim();
     return (forwarded || request.socket.remoteAddress || "").replace(/^::ffff:/, "");
@@ -725,15 +827,27 @@ const server = http.createServer(async (request, response) => {
         }
     }
 
-    if (!["/api/chat", "/api/push-live", "/api/propose", "/api/push-proposal"].includes(request.url) || request.method !== "POST") {
-        return sendJson(response, 404, { error: "Not found." }, allowedOrigin);
-    }
-
     if (!ACCESS_CODE || request.headers["x-lethe-access"] !== ACCESS_CODE) {
         return sendJson(response, 401, { error: "Access code required." }, allowedOrigin);
     }
 
     try {
+        if (request.url === "/api/entries" && request.method === "GET") {
+            return sendJson(response, 200, { entries: listEntries(await readEntries()) }, allowedOrigin);
+        }
+
+        if (![
+            "/api/chat",
+            "/api/push-live",
+            "/api/propose",
+            "/api/push-proposal",
+            "/api/entries/save",
+            "/api/entries/publish",
+            "/api/entries/delete"
+        ].includes(request.url) || request.method !== "POST") {
+            return sendJson(response, 404, { error: "Not found." }, allowedOrigin);
+        }
+
         const body = await readBody(request);
         const payload = JSON.parse(body || "{}");
 
@@ -748,6 +862,18 @@ const server = http.createServer(async (request, response) => {
 
         if (request.url === "/api/push-proposal") {
             return sendJson(response, 200, await pushProposal(payload), allowedOrigin);
+        }
+
+        if (request.url === "/api/entries/save") {
+            return sendJson(response, 200, await saveEntry(payload, "draft"), allowedOrigin);
+        }
+
+        if (request.url === "/api/entries/publish") {
+            return sendJson(response, 200, await publishEntry(payload), allowedOrigin);
+        }
+
+        if (request.url === "/api/entries/delete") {
+            return sendJson(response, 200, await deleteEntry(payload), allowedOrigin);
         }
 
         const messages = normalizeMessages(payload.messages);

@@ -27,6 +27,18 @@ const visitorMapDetail = document.getElementById("visitor-map-detail");
 const mapDetailTitle = document.getElementById("map-detail-title");
 const mapDetailBody = document.getElementById("map-detail-body");
 const mapDetailClose = document.getElementById("map-detail-close");
+const entriesPanel = document.getElementById("entries-panel");
+const newEntry = document.getElementById("new-entry");
+const entryTitle = document.getElementById("entry-title");
+const entrySlug = document.getElementById("entry-slug");
+const entryExcerpt = document.getElementById("entry-excerpt");
+const entryContent = document.getElementById("entry-content");
+const saveEntryDraft = document.getElementById("save-entry-draft");
+const publishEntry = document.getElementById("publish-entry");
+const deleteEntry = document.getElementById("delete-entry");
+const entryStatus = document.getElementById("entry-status");
+const draftEntryList = document.getElementById("draft-entry-list");
+const publishedEntryList = document.getElementById("published-entry-list");
 
 const rememberedAccess = localStorage.getItem("letheDashboardAccess") || sessionStorage.getItem("letheDashboardAccess") || "";
 
@@ -65,7 +77,9 @@ const state = {
     latestRequest: "",
     proposalId: "",
     uploadedImage: null,
-    countries: []
+    countries: [],
+    entries: [],
+    selectedEntryId: ""
 };
 
 const mapCountryByKey = new Map();
@@ -75,6 +89,7 @@ function setDashboardUnlocked(isUnlocked) {
     rememberRow.hidden = isUnlocked;
     composer.hidden = !isUnlocked;
     proposalPanel.hidden = !isUnlocked;
+    entriesPanel.hidden = !isUnlocked;
     uploadPreview.hidden = !isUnlocked || !state.uploadedImage;
 }
 
@@ -102,6 +117,183 @@ function setBusy(isBusy) {
 function setPushStatus(text, type = "") {
     pushStatus.textContent = text;
     pushStatus.className = `push-status ${type}`.trim();
+}
+
+function setEntryStatus(text, type = "") {
+    entryStatus.textContent = text;
+    entryStatus.className = `push-status ${type}`.trim();
+}
+
+function slugify(value) {
+    return String(value || "")
+        .toLowerCase()
+        .replace(/&/g, " and ")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 72);
+}
+
+function currentEntryPayload() {
+    return {
+        id: state.selectedEntryId,
+        title: entryTitle.value.trim(),
+        slug: entrySlug.value.trim() || slugify(entryTitle.value),
+        excerpt: entryExcerpt.value.trim(),
+        content: entryContent.value.trim()
+    };
+}
+
+function clearEntryEditor() {
+    state.selectedEntryId = "";
+    entryTitle.value = "";
+    entrySlug.value = "";
+    entryExcerpt.value = "";
+    entryContent.value = "";
+    deleteEntry.disabled = true;
+    setEntryStatus("");
+    entryTitle.focus();
+}
+
+function selectEntry(entry) {
+    state.selectedEntryId = entry.id;
+    entryTitle.value = entry.title || "";
+    entrySlug.value = entry.slug || "";
+    entryExcerpt.value = entry.excerpt || "";
+    entryContent.value = entry.content || "";
+    deleteEntry.disabled = false;
+    setEntryStatus(`${entry.status === "published" ? "Published Dispatch" : "Draft Entry"} loaded.`);
+}
+
+function formatEntryDate(value) {
+    if (!value) return "not published";
+    try {
+        return new Intl.DateTimeFormat(undefined, {
+            dateStyle: "medium",
+            timeStyle: "short"
+        }).format(new Date(value));
+    } catch {
+        return value;
+    }
+}
+
+function renderEntryList(container, entries, emptyText) {
+    container.innerHTML = "";
+    if (!entries.length) {
+        const empty = document.createElement("p");
+        empty.className = "entry-list-empty";
+        empty.textContent = emptyText;
+        container.appendChild(empty);
+        return;
+    }
+
+    entries.forEach((entry) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        const title = document.createElement("strong");
+        title.textContent = entry.title;
+        const meta = document.createElement("span");
+        meta.textContent = entry.status === "published"
+            ? `/${entry.slug}/ / ${formatEntryDate(entry.publishedAt)}`
+            : `/${entry.slug || "draft"}/ / updated ${formatEntryDate(entry.updatedAt)}`;
+        button.append(title, meta);
+        button.addEventListener("click", () => selectEntry(entry));
+        container.appendChild(button);
+    });
+}
+
+function renderEntries(entries) {
+    state.entries = Array.isArray(entries) ? entries : [];
+    renderEntryList(
+        draftEntryList,
+        state.entries.filter((entry) => entry.status !== "published"),
+        "No draft entries yet."
+    );
+    renderEntryList(
+        publishedEntryList,
+        state.entries.filter((entry) => entry.status === "published"),
+        "No published Dispatches yet."
+    );
+}
+
+async function entriesRequest(path, payload = null) {
+    const options = {
+        headers: { "X-Lethe-Access": state.accessCode }
+    };
+    if (payload) {
+        options.method = "POST";
+        options.headers["Content-Type"] = "application/json";
+        options.body = JSON.stringify(payload);
+    }
+
+    const response = await fetch(`${API_BASE}${path}`, options);
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Entry request failed.");
+    return data;
+}
+
+async function loadEntries() {
+    if (!state.accessCode) return;
+
+    try {
+        const data = await entriesRequest("/api/entries");
+        renderEntries(data.entries);
+    } catch (error) {
+        setEntryStatus(error.message, "error");
+    }
+}
+
+async function submitEntry(action) {
+    if (!state.accessCode) {
+        setEntryStatus("Enter the access code first.", "error");
+        accessCode.focus();
+        return;
+    }
+
+    const payload = currentEntryPayload();
+    if (!payload.title) {
+        setEntryStatus("Entry title is required.", "error");
+        entryTitle.focus();
+        return;
+    }
+
+    const button = action === "publish" ? publishEntry : saveEntryDraft;
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = action === "publish" ? "Publishing" : "Saving";
+    setEntryStatus(action === "publish" ? "Publishing Dispatches to GitHub..." : "Saving draft Entry...");
+
+    try {
+        const data = await entriesRequest(action === "publish" ? "/api/entries/publish" : "/api/entries/save", payload);
+        renderEntries(data.entries);
+        selectEntry(data.entry);
+        const suffix = data.commit ? ` Commit ${data.commit}.` : "";
+        setEntryStatus(action === "publish" ? `Published Dispatch.${suffix}` : "Draft Entry saved.", "success");
+    } catch (error) {
+        setEntryStatus(error.message, "error");
+    } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+    }
+}
+
+async function removeSelectedEntry() {
+    if (!state.selectedEntryId) return;
+    const entry = state.entries.find((candidate) => candidate.id === state.selectedEntryId);
+    const confirmed = window.confirm(`Delete "${entry?.title || "this Entry"}"? Published Dispatches will be regenerated.`);
+    if (!confirmed) return;
+
+    deleteEntry.disabled = true;
+    setEntryStatus("Deleting Entry...");
+    try {
+        const data = await entriesRequest("/api/entries/delete", { id: state.selectedEntryId });
+        renderEntries(data.entries);
+        clearEntryEditor();
+        const suffix = data.commit ? ` Commit ${data.commit}.` : "";
+        setEntryStatus(`Entry deleted.${suffix}`, "success");
+    } catch (error) {
+        deleteEntry.disabled = false;
+        setEntryStatus(error.message, "error");
+    }
 }
 
 function renderUploadedImage() {
@@ -137,6 +329,7 @@ async function unlockDashboard(code, { silent = false } = {}) {
     }
     setDashboardUnlocked(true);
     renderVisits(data);
+    loadEntries();
     if (!silent) promptEl.focus();
 }
 
@@ -167,6 +360,18 @@ clearChat.addEventListener("click", () => {
     messagesEl.innerHTML = "";
     addMessage("assistant", "Fresh page. What change should we shape next?");
 });
+
+newEntry.addEventListener("click", clearEntryEditor);
+
+entryTitle.addEventListener("input", () => {
+    if (!state.selectedEntryId || !entrySlug.value.trim()) {
+        entrySlug.value = slugify(entryTitle.value);
+    }
+});
+
+saveEntryDraft.addEventListener("click", () => submitEntry("draft"));
+publishEntry.addEventListener("click", () => submitEntry("publish"));
+deleteEntry.addEventListener("click", removeSelectedEntry);
 
 imageUpload.addEventListener("change", () => {
     const file = imageUpload.files[0];

@@ -310,14 +310,17 @@ button {
 }
 
 .proposal-header,
-.proposal-actions {
+.proposal-actions,
+.entries-header,
+.entry-actions {
     display: flex;
     justify-content: space-between;
     gap: 1rem;
     align-items: start;
 }
 
-.proposal-header h3 {
+.proposal-header h3,
+.entries-header h3 {
     margin: 0;
     font-family: var(--font-body);
     font-size: 1.6rem;
@@ -368,6 +371,93 @@ button {
 
 .push-status.success {
     color: var(--gold);
+}
+
+.entries-panel {
+    border: 1px solid rgba(241, 196, 15, 0.22);
+    background: rgba(10, 8, 12, 0.28);
+    padding: 1rem;
+}
+
+.entry-editor {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.entry-editor input,
+.entry-editor textarea {
+    width: 100%;
+    color: var(--ink);
+    background: var(--panel);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    outline: none;
+    padding: 0.85rem 1rem;
+}
+
+.entry-editor textarea {
+    resize: vertical;
+    line-height: 1.45;
+}
+
+.entry-editor input:focus,
+.entry-editor textarea:focus {
+    border-color: var(--gold);
+}
+
+.entry-actions {
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.entry-lists {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.entry-list {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.entry-list-empty,
+.entry-list button {
+    width: 100%;
+    text-align: left;
+}
+
+.entry-list button {
+    display: grid;
+    gap: 0.25rem;
+    border-color: rgba(255, 255, 255, 0.12);
+    background: var(--panel);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    letter-spacing: 0;
+    line-height: 1.35;
+    text-transform: none;
+}
+
+.entry-list button:hover,
+.entry-list button:focus {
+    border-color: var(--gold);
+}
+
+.entry-list button strong {
+    font-family: var(--font-body);
+    font-size: 1.08rem;
+    font-weight: 400;
+}
+
+.entry-list button span,
+.entry-list-empty {
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
 }
 
 .visits-panel {
@@ -617,8 +707,14 @@ button {
     .composer,
     .composer-actions,
     .proposal-header,
-    .proposal-actions {
+    .proposal-actions,
+    .entries-header,
+    .entry-actions {
         flex-direction: column;
+    }
+
+    .entry-lists {
+        grid-template-columns: 1fr;
     }
 
     button {
