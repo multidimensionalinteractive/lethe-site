@@ -10,7 +10,7 @@ document.querySelectorAll(".section, .art-section, .bibliography, .image-band, .
     revealObserver.observe(section);
 });
 
-const markerImages = Array.from(document.querySelectorAll(".marker-grid img"));
+const lightboxImages = Array.from(document.querySelectorAll("main img"));
 let imageLightbox;
 let lightboxImage;
 let lightboxCaption;
@@ -67,7 +67,8 @@ function openImageLightbox(image) {
     imageLightbox.querySelector(".image-lightbox-close").focus();
 }
 
-markerImages.forEach((image) => {
+lightboxImages.forEach((image) => {
+    image.classList.add("lightbox-source");
     image.tabIndex = 0;
     image.setAttribute("role", "button");
     image.setAttribute("aria-label", `Open image preview: ${image.alt || "selected work"}`);

@@ -133,7 +133,7 @@ function renderHead({ title, description, canonical, prefix, type = "website" })
     <meta name="twitter:image" content="${image}">
     <link rel="icon" type="image/jpeg" href="${prefix}assets/favicon-lethe.jpg">
     <link rel="apple-touch-icon" href="${prefix}assets/favicon-lethe.jpg">
-    <link rel="stylesheet" href="${prefix}styles.css?v=dispatches-marker-lightbox-20260616">
+    <link rel="stylesheet" href="${prefix}styles.css?v=all-images-lightbox-20260617">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
@@ -189,7 +189,7 @@ ${renderHead({
         <strong>THE FRONT NEVER ENDED.</strong>
     </footer>
 
-    <script src="../script.js?v=marker-lightbox-20260616"></script>
+    <script src="../script.js?v=all-images-lightbox-20260617"></script>
 </body>
 </html>`;
 }
@@ -237,7 +237,7 @@ ${renderHead({
         <strong>THE FRONT NEVER ENDED.</strong>
     </footer>
 
-    <script src="../../script.js?v=marker-lightbox-20260616"></script>
+    <script src="../../script.js?v=all-images-lightbox-20260617"></script>
 </body>
 </html>`;
 }

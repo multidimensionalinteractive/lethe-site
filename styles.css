@@ -1009,11 +1009,24 @@ figcaption {
     overflow: hidden;
 }
 
-.marker-grid img {
+.artwork,
+.feature-work,
+.reference-study figure,
+.marker-grid figure {
+    overflow: hidden;
+}
+
+.lightbox-source {
     cursor: zoom-in;
     transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1), filter 700ms ease;
 }
 
+.artwork:hover .lightbox-source,
+.artwork:focus-within .lightbox-source,
+.feature-work:hover .lightbox-source,
+.feature-work:focus-within .lightbox-source,
+.reference-study figure:hover .lightbox-source,
+.reference-study figure:focus-within .lightbox-source,
 .marker-grid figure:hover img,
 .marker-grid figure:focus-within img {
     transform: scale(1.045);
