@@ -833,9 +833,15 @@ figcaption {
     color: var(--dust-gray);
 }
 
+.contact-links {
+    display: grid;
+    gap: 0.85rem;
+    justify-items: center;
+    margin-top: 1rem;
+}
+
 .contact a {
     display: inline-block;
-    margin-top: 1rem;
     color: var(--dust-gold);
     font-family: var(--font-infra);
     font-size: clamp(0.9rem, 1.5vw, 1.2rem);
