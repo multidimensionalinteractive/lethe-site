@@ -48,13 +48,6 @@
         rgba(106, 74, 98, 0.35) 68%,
         rgba(42, 69, 80, 0.2)
     );
-    /* Oil-slick rim: petroleum / emerald / bronze / violet on letter edges */
-    --header-iridescent-rim:
-        -0.045em 0 0 rgba(42, 69, 80, 0.42),
-        0.04em 0.012em 0 rgba(62, 90, 74, 0.32),
-        0.022em -0.04em 0 rgba(138, 115, 72, 0.28),
-        -0.018em 0.035em 0 rgba(74, 58, 88, 0.3),
-        0 0 1.1em rgba(92, 21, 24, 0.14);
     --font-display: "DIN 1451 Engschrift", "Bahnschrift Condensed", "Arial Narrow", sans-serif;
     --font-prose: "DIN 1451 Mittelschrift", "Bahnschrift", "Helvetica Neue", Arial, sans-serif;
     --space-section: clamp(6.5rem, 12vw, 11rem);
@@ -279,7 +272,6 @@ figcaption,
     margin: 0 0 1.1rem;
     color: var(--oxblood);
     font-size: 0.74rem;
-    text-shadow: var(--header-iridescent-rim);
 }
 
 .hero-meta {
@@ -304,12 +296,11 @@ figcaption,
     line-height: 0.88;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    transition: color 1.2s ease, text-shadow 1.2s ease;
+    transition: color 1.2s ease;
 }
 
 .hero-title.is-warming {
     color: var(--oxblood);
-    text-shadow: var(--header-iridescent-rim);
 }
 
 .hero-tag {
@@ -425,7 +416,6 @@ figcaption,
 .section-index {
     color: var(--oxblood);
     font-size: 0.74rem;
-    text-shadow: var(--header-iridescent-rim);
 }
 
 .section-body {
@@ -456,7 +446,6 @@ h2 {
     color: var(--oxblood);
     font-size: clamp(2rem, 4.4vw, 4.4rem);
     line-height: 0.95;
-    text-shadow: var(--header-iridescent-rim);
 }
 
 h3 {
