@@ -1,3 +1,19 @@
+@font-face {
+    font-family: "DIN 1451 Engschrift";
+    src: url("fonts/DIN1451-Engschrift.woff2") format("woff2");
+    font-weight: 400 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "DIN 1451 Mittelschrift";
+    src: url("fonts/DIN1451-Mittelschrift.woff2") format("woff2");
+    font-weight: 400 600;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     --charcoal: #161616;
     --charcoal-2: #1C1C1C;
@@ -6,9 +22,11 @@
     --paper: #F2EEE5;
     --paper-muted: rgba(242, 238, 229, 0.72);
     --paper-dim: rgba(242, 238, 229, 0.42);
-    --rust: #8F3428;
-    --rust-deep: #6E241C;
-    --rust-soft: rgba(143, 52, 40, 0.18);
+    /* Header red: deep cadmium / oxblood — museum archive, not bright rust */
+    --oxblood: #5C1518;
+    --rust: #6B1A1A;
+    --rust-deep: #5C1518;
+    --rust-soft: rgba(92, 21, 24, 0.18);
     --petroleum: #2A4550;
     --cobalt-violet: #4A3A58;
     --emerald: #3E5A4A;
@@ -30,8 +48,15 @@
         rgba(106, 74, 98, 0.35) 68%,
         rgba(42, 69, 80, 0.2)
     );
-    --font-display: "Barlow Condensed", "Bahnschrift", "DIN 1451 Mittelschrift", "DIN Alternate", "Arial Narrow", sans-serif;
-    --font-prose: "Spectral", Georgia, "Times New Roman", serif;
+    /* Oil-slick rim: petroleum / emerald / bronze / violet on letter edges */
+    --header-iridescent-rim:
+        -0.045em 0 0 rgba(42, 69, 80, 0.42),
+        0.04em 0.012em 0 rgba(62, 90, 74, 0.32),
+        0.022em -0.04em 0 rgba(138, 115, 72, 0.28),
+        -0.018em 0.035em 0 rgba(74, 58, 88, 0.3),
+        0 0 1.1em rgba(92, 21, 24, 0.14);
+    --font-display: "DIN 1451 Engschrift", "Bahnschrift Condensed", "Arial Narrow", sans-serif;
+    --font-prose: "DIN 1451 Mittelschrift", "Bahnschrift", "Helvetica Neue", Arial, sans-serif;
     --space-section: clamp(6.5rem, 12vw, 11rem);
     --space-page: clamp(1.25rem, 5vw, 5rem);
     --measure: 42rem;
@@ -54,7 +79,7 @@ body {
     color: var(--text);
     background-color: var(--charcoal);
     background-image:
-        radial-gradient(circle at 12% 0%, rgba(143, 52, 40, 0.08), transparent 28rem),
+        radial-gradient(circle at 12% 0%, rgba(92, 21, 24, 0.1), transparent 28rem),
         radial-gradient(circle at 88% 18%, rgba(42, 69, 80, 0.14), transparent 32rem),
         linear-gradient(135deg, rgba(74, 58, 88, 0.1), transparent 40%),
         linear-gradient(180deg, var(--charcoal), var(--charcoal-2));
@@ -156,7 +181,7 @@ a {
     flex: 0 0 auto;
     width: 1.3rem;
     height: 1.3rem;
-    border: 1px solid rgba(143, 52, 40, 0.45);
+    border: 1px solid rgba(92, 21, 24, 0.5);
     border-radius: 50%;
     object-fit: cover;
     filter: saturate(0.7) contrast(1.05);
@@ -252,8 +277,9 @@ figcaption,
 
 .kicker {
     margin: 0 0 1.1rem;
-    color: var(--rust);
+    color: var(--oxblood);
     font-size: 0.74rem;
+    text-shadow: var(--header-iridescent-rim);
 }
 
 .hero-meta {
@@ -282,8 +308,8 @@ figcaption,
 }
 
 .hero-title.is-warming {
-    color: var(--rust);
-    text-shadow: 0 0 24px rgba(143, 52, 40, 0.18);
+    color: var(--oxblood);
+    text-shadow: var(--header-iridescent-rim);
 }
 
 .hero-tag {
@@ -311,8 +337,9 @@ figcaption,
     width: min(34rem, 100%);
     margin: 0 0 2rem;
     color: var(--paper-muted);
+    font-family: var(--font-prose);
     font-size: clamp(1.15rem, 1.7vw, 1.45rem);
-    font-style: italic;
+    font-style: normal;
     line-height: 1.55;
 }
 
@@ -396,8 +423,9 @@ figcaption,
 }
 
 .section-index {
-    color: var(--rust);
+    color: var(--oxblood);
     font-size: 0.74rem;
+    text-shadow: var(--header-iridescent-rim);
 }
 
 .section-body {
@@ -425,9 +453,10 @@ h2, h3 {
 
 h2 {
     margin-bottom: clamp(1.5rem, 3vw, 2.6rem);
-    color: var(--rust);
+    color: var(--oxblood);
     font-size: clamp(2rem, 4.4vw, 4.4rem);
     line-height: 0.95;
+    text-shadow: var(--header-iridescent-rim);
 }
 
 h3 {
@@ -439,13 +468,15 @@ h3 {
 .threshold {
     margin: 0 0 1.4rem;
     color: var(--paper-muted);
+    font-family: var(--font-prose);
     font-size: clamp(1.25rem, 1.9vw, 1.65rem);
-    font-style: italic;
+    font-style: normal;
     line-height: 1.45;
 }
 
 .prose {
     color: var(--text);
+    font-family: var(--font-prose);
     font-size: clamp(1.05rem, 1.45vw, 1.25rem);
 }
 
@@ -582,7 +613,7 @@ figcaption {
     padding: 0.75rem 0;
     color: var(--paper-dim);
     font-size: 0.66rem;
-    border-top: 1px solid rgba(143, 52, 40, 0.28);
+    border-top: 1px solid rgba(92, 21, 24, 0.28);
 }
 
 .method {
@@ -783,7 +814,7 @@ figcaption {
 
 .ethics {
     background:
-        radial-gradient(circle at 50% 0%, rgba(143, 52, 40, 0.08), transparent 40%),
+        radial-gradient(circle at 50% 0%, rgba(92, 21, 24, 0.1), transparent 40%),
         var(--charcoal-2);
 }
 
@@ -865,7 +896,7 @@ figcaption {
     place-items: center;
     text-align: center;
     background:
-        radial-gradient(circle at 50% 0%, rgba(143, 52, 40, 0.14), transparent 28rem),
+        radial-gradient(circle at 50% 0%, rgba(92, 21, 24, 0.14), transparent 28rem),
         var(--charcoal);
 }
 
@@ -926,7 +957,7 @@ figcaption {
     gap: 1rem;
     flex-wrap: wrap;
     padding: 0.55rem var(--space-page);
-    background: rgba(143, 52, 40, 0.92);
+    background: rgba(92, 21, 24, 0.92);
     color: var(--paper);
     font-family: var(--font-display);
     font-size: 0.7rem;
