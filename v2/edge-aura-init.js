@@ -24,10 +24,10 @@ if (!canvas) {
 const engine = createAuraEngine(canvas, {
     ...EDGE_AURA_PRESETS.subtle,
     geometry: {
-        inset: 3,
+        inset: 0,
         cornerRadius: 16,
         band: 78,
-        topEdgeFade: 14
+        topEdgeFade: 0
     },
     palette: {
         stops: ARCHIVE_PALETTE,
