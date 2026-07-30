@@ -22,24 +22,24 @@ if (!canvas) {
 }
 
 const engine = createAuraEngine(canvas, {
-    ...EDGE_AURA_PRESETS.calm,
+    ...EDGE_AURA_PRESETS.subtle,
     geometry: {
-        inset: 4,
-        cornerRadius: 18,
-        band: 64,
-        topEdgeFade: 18
+        inset: 3,
+        cornerRadius: 16,
+        band: 78,
+        topEdgeFade: 14
     },
     palette: {
         stops: ARCHIVE_PALETTE,
-        pastel: 0.28,
-        ringAlpha: 0.55,
+        pastel: 0.22,
+        ringAlpha: 0.72,
         background: "dark",
         normalize: true
     },
     motion: {
-        rotateIdleS: 18,
-        rotateTypingS: 10,
-        kindleDurS: 1.2
+        rotateIdleS: 14,
+        rotateTypingS: 8,
+        kindleDurS: 1.1
     }
 });
 
