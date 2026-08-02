@@ -1,0 +1,119 @@
+/* YOU ARE STILL INSIDE IT — interview article styles */
+
+.interview-hero {
+    position: relative;
+    min-height: 72vh;
+    display: grid;
+    align-content: end;
+    padding: 10rem clamp(1rem, 5vw, 5rem) clamp(4rem, 8vw, 6rem);
+    border-bottom: 1px solid var(--line);
+    background:
+        radial-gradient(circle at 82% 12%, rgba(42, 24, 48, 0.6), transparent 30rem),
+        radial-gradient(circle at 12% 0%, rgba(21, 94, 122, 0.18), transparent 30rem),
+        linear-gradient(160deg, rgba(104, 67, 126, 0.14), transparent 48%),
+        var(--ruin-2);
+}
+
+.interview-hero h1 {
+    max-width: 14ch;
+    font-size: clamp(2.8rem, 7vw, 6.4rem);
+}
+
+.interview-deck {
+    width: min(720px, 100%);
+    margin-bottom: 2rem;
+    color: var(--bone-dim);
+    font-size: clamp(1.08rem, 1.6vw, 1.32rem);
+    line-height: 1.75;
+}
+
+.interview-meta {
+    color: var(--text-soft);
+    font-family: var(--font-display);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.interview-layout {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.28fr) minmax(0, 0.74fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    padding: clamp(4rem, 8vw, 7rem) clamp(1rem, 5vw, 5rem);
+    background: var(--ruin);
+}
+
+.interview-layout .interview-meta {
+    position: sticky;
+    top: 6rem;
+    align-self: start;
+}
+
+.interview-layout .interview-meta span {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: var(--oil-copper);
+    font-size: 1.8rem;
+}
+
+.interview-layout .interview-meta p {
+    margin-bottom: 2.2rem;
+    font-size: 0.72rem;
+}
+
+.interview-prose {
+    width: min(760px, 100%);
+    color: var(--text);
+    font-size: clamp(1.06rem, 1.5vw, 1.28rem);
+    line-height: 1.82;
+}
+
+.interview-prose h2 {
+    margin: 3rem 0 1.4rem;
+    color: var(--bone);
+    font-size: clamp(1.8rem, 4vw, 3.4rem);
+}
+
+.interview-prose h2:first-child {
+    margin-top: 0;
+}
+
+.interview-prose p {
+    margin-bottom: 1.3rem;
+}
+
+.interview-prose hr {
+    width: 8rem;
+    height: 1px;
+    margin: 3rem 0;
+    border: 0;
+    background: linear-gradient(90deg, var(--oil-copper), transparent);
+}
+
+.interview-signoff {
+    color: var(--oil-gold);
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    letter-spacing: 0.2em;
+}
+
+.button-ghost {
+    background: transparent;
+    border-color: var(--line-strong);
+}
+
+.button-ghost:hover {
+    background: var(--oil-slick);
+    border-color: var(--bone);
+    color: var(--ruin);
+}
+
+@media (max-width: 860px) {
+    .interview-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .interview-layout .interview-meta {
+        position: static;
+    }
+}
