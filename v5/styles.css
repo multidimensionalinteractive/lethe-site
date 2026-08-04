@@ -132,13 +132,13 @@ body {
     inset: 0;
     background:
         radial-gradient(ellipse at 50% 35%,
-            rgba(20, 14, 10, 0.12) 0%,
-            rgba(20, 14, 10, 0.28) 55%,
-            rgba(12, 10, 8, 0.45) 100%),
+            rgba(12, 10, 8, 0.28) 0%,
+            rgba(12, 10, 8, 0.48) 55%,
+            rgba(10, 8, 7, 0.62) 100%),
         linear-gradient(180deg,
-            rgba(143, 42, 29, 0.08) 0%,
-            transparent 40%,
-            rgba(12, 10, 8, 0.22) 100%);
+            rgba(143, 42, 29, 0.06) 0%,
+            rgba(12, 10, 8, 0.2) 45%,
+            rgba(10, 8, 7, 0.38) 100%);
 }
 
 /* Content above the fixed field */
@@ -328,7 +328,7 @@ a {
     align-items: end;
     overflow: hidden;
     border-bottom: 1px solid var(--line);
-    background: transparent;
+    background: var(--near-black);
 }
 
 .hero-image,
@@ -338,14 +338,17 @@ a {
 }
 
 .hero-image {
-    /* Same warm map field as the site — no grey factory crush */
-    background: transparent;
+    /* Factory ruin photo for the opening viewport — map takes over below */
+    background: url("assets/factory-ruin-bg.jpg") center 22% / cover no-repeat;
+    filter: saturate(0.45) sepia(0.12) contrast(1.04) brightness(0.48);
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 .hero-scrim {
     background:
-        linear-gradient(0deg, rgba(12, 10, 8, 0.72) 0%, transparent 48%),
-        linear-gradient(180deg, rgba(12, 10, 8, 0.2), transparent 30%);
+        linear-gradient(0deg, rgba(12, 10, 8, 0.88) 0%, transparent 44%),
+        linear-gradient(180deg, rgba(12, 10, 8, 0.28), transparent 28%);
 }
 
 .hero-content {
