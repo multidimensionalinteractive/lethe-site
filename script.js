@@ -4,9 +4,9 @@ const revealObserver = new IntersectionObserver((entries) => {
             entry.target.classList.add("is-visible");
         }
     });
-}, { threshold: 0.12 });
+}, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
 
-document.querySelectorAll(".section, .art-section, .bibliography, .image-band, .contact, .observations-hero, .observation-card, .dispatch-card").forEach((section) => {
+document.querySelectorAll(".section, .featured, .works-head, .archive-head, .work, .reference-study, .marker-grid, .archive-item, .correspondence-panel, .correspondence-figure").forEach((section) => {
     revealObserver.observe(section);
 });
 
@@ -58,7 +58,8 @@ function openImageLightbox(image) {
     ensureImageLightbox();
     const figure = image.closest("figure");
     const caption = figure?.querySelector("figcaption")?.textContent?.trim() || image.alt || "Selected work";
-    lightboxImage.src = image.currentSrc || image.src;
+    const fullSrc = image.getAttribute("data-full-src");
+    lightboxImage.src = fullSrc || image.currentSrc || image.src;
     lightboxImage.alt = image.alt || caption;
     lightboxCaption.textContent = caption;
     imageLightbox.classList.add("is-open");
@@ -85,123 +86,39 @@ document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeImageLightbox();
 });
 
-let ticking = false;
-const settleTimers = new WeakMap();
-let heroTitleWarmTimer;
-let witnessTitleWarmTimer;
-let ethicsTitleWarmTimer;
-let fragmentsTitleWarmTimer;
+const nav = document.querySelector(".site-nav");
+const heroImage = document.querySelector(".hero-image");
+let bgParallaxTicking = false;
 
-function settleFadeTarget(target) {
-    if (!target) return;
-    target.classList.remove("is-scrolling");
-    target.style.opacity = "1";
-}
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function applyScrollFade(target, progress, transform, settleDelay = 260) {
-    if (!target) return;
-    target.classList.add("is-scrolling");
-    if (transform) {
-        target.style.transform = transform;
+function updateBgParallax() {
+    bgParallaxTicking = false;
+    if (prefersReducedMotion) return;
+    const y = window.scrollY || 0;
+    // Background map stays static (revision spec). Light hero depth only.
+    if (heroImage) {
+        const hero = heroImage.closest(".hero");
+        const heroBottom = hero ? hero.offsetTop + hero.offsetHeight : 0;
+        if (y < heroBottom) {
+            heroImage.style.transform = `translate3d(0, ${y * 0.28}px, 0) scale(1.04)`;
+        }
     }
-    target.style.opacity = String(Math.max(0.3, 1 - progress));
-    window.clearTimeout(settleTimers.get(target));
-    settleTimers.set(target, window.setTimeout(() => settleFadeTarget(target), settleDelay));
 }
 
 window.addEventListener("scroll", () => {
-    if (ticking) return;
+    if (nav) {
+        nav.classList.toggle("is-scrolled", window.scrollY > 80);
+    }
+    if (!bgParallaxTicking) {
+        bgParallaxTicking = true;
+        requestAnimationFrame(updateBgParallax);
+    }
+}, { passive: true });
 
-    requestAnimationFrame(() => {
-        const scrollY = window.scrollY;
-        const heroContent = document.querySelector(".hero-content");
-        const heroTitle = document.querySelector(".hero-title");
-        const heroImage = document.querySelector(".hero-image");
-        const witnessSection = document.querySelector(".witness-section");
-        const witnessTitle = document.querySelector(".witness-title");
-        const ethicsSection = document.querySelector(".ethics");
-        const ethicsTitle = document.querySelector(".ethics-title");
-        const fragmentsSection = document.querySelector(".fragments");
-        const fragmentsTitle = document.querySelector(".fragments-title");
-        const nav = document.querySelector(".site-nav");
-
-        if (heroContent && scrollY < window.innerHeight) {
-            applyScrollFade(heroContent, scrollY / window.innerHeight, `translateY(${scrollY * 0.12}px)`);
-        } else {
-            settleFadeTarget(heroContent);
-        }
-
-        if (heroImage && scrollY < window.innerHeight) {
-            heroImage.style.transform = `scale(1.04) translateY(${scrollY * 0.08}px)`;
-        }
-
-        if (witnessSection) {
-            const rect = witnessSection.getBoundingClientRect();
-            const isWitnessInView = rect.top < window.innerHeight && rect.bottom > 0;
-            if (isWitnessInView) {
-                const viewportCenter = window.innerHeight / 2;
-                const sectionCenter = rect.top + (rect.height / 2);
-                const distance = Math.abs(sectionCenter - viewportCenter);
-                const progress = Math.min(0.7, distance / window.innerHeight);
-                applyScrollFade(witnessSection, progress, null, 760);
-            } else {
-                settleFadeTarget(witnessSection);
-            }
-        }
-
-        if (nav) {
-            nav.classList.toggle("is-scrolled", scrollY > 80);
-        }
-
-        if (heroTitle && scrollY < window.innerHeight) {
-            heroTitle.classList.add("is-warming");
-            window.clearTimeout(heroTitleWarmTimer);
-            heroTitleWarmTimer = window.setTimeout(() => {
-                heroTitle.classList.remove("is-warming");
-            }, 1100);
-        }
-
-        if (witnessTitle && witnessSection) {
-            const rect = witnessSection.getBoundingClientRect();
-            const isWitnessInView = rect.top < window.innerHeight && rect.bottom > 0;
-            if (isWitnessInView) {
-                witnessTitle.classList.add("is-warming");
-                window.clearTimeout(witnessTitleWarmTimer);
-                witnessTitleWarmTimer = window.setTimeout(() => {
-                    witnessTitle.classList.remove("is-warming");
-                }, 1100);
-            }
-        }
-
-        if (ethicsTitle && ethicsSection) {
-            const rect = ethicsSection.getBoundingClientRect();
-            const isEthicsInView = rect.top < window.innerHeight && rect.bottom > 0;
-            if (isEthicsInView) {
-                ethicsTitle.classList.add("is-warming");
-                window.clearTimeout(ethicsTitleWarmTimer);
-                ethicsTitleWarmTimer = window.setTimeout(() => {
-                    ethicsTitle.classList.remove("is-warming");
-                }, 1100);
-            }
-        }
-
-        if (fragmentsTitle && fragmentsSection) {
-            const rect = fragmentsSection.getBoundingClientRect();
-            const isFragmentsInView = rect.top < window.innerHeight && rect.bottom > 0;
-            if (isFragmentsInView) {
-                fragmentsTitle.classList.add("is-warming");
-                window.clearTimeout(fragmentsTitleWarmTimer);
-                fragmentsTitleWarmTimer = window.setTimeout(() => {
-                    fragmentsTitle.classList.remove("is-warming");
-                }, 1100);
-            }
-        }
-
-        ticking = false;
-    });
-
-    ticking = true;
-});
+if (!prefersReducedMotion) {
+    updateBgParallax();
+}
 
 if (window.location.pathname !== "/dashboard/" && !window.location.pathname.startsWith("/dashboard/")) {
     fetch("https://hermes-web.mdi.io/lethe-dashboard/api/track", {
