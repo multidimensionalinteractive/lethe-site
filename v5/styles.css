@@ -633,10 +633,10 @@ a {
 /* Third child of .section was auto-placed into the 3.5rem index column */
 .practice .detail-figure,
 .lethe .detail-figure {
-    grid-column: 2 / -1;
+    grid-column: 1 / -1;
     width: 100%;
-    max-width: min(58rem, 100%);
-    margin-top: 0.5rem;
+    max-width: none;
+    margin-top: 2rem;
 }
 
 .detail-figure img {
@@ -649,10 +649,10 @@ a {
 
 .practice .detail-figure img,
 .lethe .detail-figure img {
-    max-height: min(78vh, 52rem);
     width: 100%;
-    object-fit: contain;
-    object-position: center top;
+    max-height: none;
+    height: auto;
+    object-fit: unset;
     background: var(--panel-art);
 }
 
