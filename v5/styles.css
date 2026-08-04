@@ -295,8 +295,7 @@ a {
 .practice h2,
 .remains h2,
 .about h2,
-.lethe h2,
-.correspondence h2 {
+.lethe h2 {
     margin: 0 0 1.65rem;
     color: var(--burgundy);
     font-family: var(--font-display);
@@ -818,13 +817,14 @@ a {
 
 .correspondence-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
     gap: clamp(1.25rem, 3vw, 2.5rem);
     align-items: stretch;
 }
 
 .correspondence-figure {
     margin: 0;
+    min-width: 0;
     background: var(--panel-art);
     box-shadow: var(--shadow-soft), var(--edge-hi);
 }
@@ -849,16 +849,33 @@ a {
 
 .correspondence-panel {
     max-width: none;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    padding: 3rem clamp(1.5rem, 4vw, 3rem);
+    padding: 3rem clamp(1.25rem, 3vw, 3rem);
     background: var(--panel);
     border: none;
     box-shadow: var(--shadow-soft), var(--edge-hi);
+    overflow: hidden;
 }
 
-@media (max-width: 900px) {
+.correspondence-panel h2 {
+    margin: 0 0 1.65rem;
+    color: var(--burgundy);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.45rem, 2.4vw + 0.4rem, 2.75rem);
+    line-height: 1.05;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    text-shadow: none;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 100%;
+}
+
+@media (max-width: 1100px) {
     .correspondence-layout {
         grid-template-columns: 1fr;
     }
@@ -866,19 +883,27 @@ a {
     .correspondence-figure img {
         max-height: min(32rem, 60vh);
     }
+
+    .correspondence-panel h2 {
+        font-size: clamp(1.75rem, 5vw, 3rem);
+    }
 }
 
 .email-line,
 .instagram-line {
-    display: inline-block;
-    margin: 1.4rem 1.4rem 0 0;
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    margin: 1.4rem 0 0;
     color: var(--sulfur);
     font-family: var(--font-struct);
-    font-size: 15px;
+    font-size: clamp(11px, 1.6vw, 15px);
     font-weight: 600;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.06em;
     text-decoration: none;
     transition: color 180ms ease;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .email-line:hover,
