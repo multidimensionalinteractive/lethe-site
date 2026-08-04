@@ -302,6 +302,37 @@ a {
     line-height: 1.75;
 }
 
+/* Figure fragment as a faded background layer (v3-style field).
+   Anchored to the right of two text-only sections so it reads as a
+   remnant in the field, never as an illustration. */
+.subject::before,
+.conversation::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 44%;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+        url("assets/figure-bg.jpg");
+    background-size: cover;
+    background-position: center 18%;
+    opacity: 0.13;
+    filter: saturate(0.45) contrast(1.08) brightness(0.55);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 58%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 58%);
+}
+
+.subject .section-index,
+.subject .section-body,
+.conversation .section-index,
+.conversation .section-body {
+    position: relative;
+    z-index: 1;
+}
+
 /* ---------- hero ---------- */
 .hero {
     position: relative;
