@@ -635,8 +635,18 @@ a {
 .lethe .detail-figure {
     grid-column: 1 / -1;
     width: 100%;
-    max-width: none;
     margin-top: 2rem;
+}
+
+/* Ushanka WIP: keep aspect, ~¼ prior full-bleed scale (stops pixelation) */
+.practice .detail-figure {
+    max-width: min(19rem, 26%);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.lethe .detail-figure {
+    max-width: none;
 }
 
 .detail-figure img {
@@ -650,8 +660,8 @@ a {
 .practice .detail-figure img,
 .lethe .detail-figure img {
     width: 100%;
-    max-height: none;
     height: auto;
+    max-height: none;
     object-fit: unset;
     background: var(--panel-art);
 }
@@ -666,7 +676,10 @@ a {
 }
 
 @media (max-width: 720px) {
-    .practice .detail-figure,
+    .practice .detail-figure {
+        max-width: min(16rem, 72%);
+    }
+
     .lethe .detail-figure {
         grid-column: 1 / -1;
         max-width: none;
