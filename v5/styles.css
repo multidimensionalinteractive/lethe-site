@@ -630,12 +630,30 @@ a {
     margin: 0;
 }
 
+/* Third child of .section was auto-placed into the 3.5rem index column */
+.practice .detail-figure,
+.lethe .detail-figure {
+    grid-column: 2 / -1;
+    width: 100%;
+    max-width: min(58rem, 100%);
+    margin-top: 0.5rem;
+}
+
 .detail-figure img {
     width: 100%;
     display: block;
     border: none;
     background: var(--panel-art);
     box-shadow: var(--shadow-soft), var(--edge-hi);
+}
+
+.practice .detail-figure img,
+.lethe .detail-figure img {
+    max-height: min(78vh, 52rem);
+    width: 100%;
+    object-fit: contain;
+    object-position: center top;
+    background: var(--panel-art);
 }
 
 .detail-figure figcaption {
@@ -645,6 +663,14 @@ a {
     font-size: 12px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
+}
+
+@media (max-width: 720px) {
+    .practice .detail-figure,
+    .lethe .detail-figure {
+        grid-column: 1 / -1;
+        max-width: none;
+    }
 }
 
 /* marker grid */
