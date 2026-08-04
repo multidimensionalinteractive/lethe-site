@@ -464,6 +464,21 @@ a {
     display: block;
 }
 
+/* Tall canvases (Worth It): ~¼ prior full-bleed width, aspect preserved */
+.work-compact > img {
+    width: 100%;
+    max-width: min(19rem, 26%);
+    height: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (max-width: 720px) {
+    .work-compact > img {
+        max-width: min(16rem, 72%);
+    }
+}
+
 .work figcaption {
     display: flex;
     align-items: flex-end;
