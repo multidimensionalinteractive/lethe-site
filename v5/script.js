@@ -86,11 +86,41 @@ document.addEventListener("keydown", (event) => {
 });
 
 const nav = document.querySelector(".site-nav");
+const siteBg = document.querySelector(".site-bg");
+const heroImage = document.querySelector(".hero-image");
+let bgParallaxTicking = false;
+
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function updateBgParallax() {
+    bgParallaxTicking = false;
+    if (prefersReducedMotion) return;
+    const y = window.scrollY || 0;
+    if (siteBg) {
+        siteBg.style.transform = `translate3d(0, ${y * 0.32}px, 0)`;
+    }
+    if (heroImage) {
+        const hero = heroImage.closest(".hero");
+        const heroBottom = hero ? hero.offsetTop + hero.offsetHeight : 0;
+        if (y < heroBottom) {
+            heroImage.style.transform = `translate3d(0, ${y * 0.4}px, 0) scale(1.06)`;
+        }
+    }
+}
+
 window.addEventListener("scroll", () => {
     if (nav) {
         nav.classList.toggle("is-scrolled", window.scrollY > 80);
     }
+    if (!bgParallaxTicking) {
+        bgParallaxTicking = true;
+        requestAnimationFrame(updateBgParallax);
+    }
 }, { passive: true });
+
+if (!prefersReducedMotion) {
+    updateBgParallax();
+}
 
 if (window.location.pathname !== "/dashboard/" && !window.location.pathname.startsWith("/dashboard/")) {
     fetch("https://hermes-web.mdi.io/lethe-dashboard/api/track", {

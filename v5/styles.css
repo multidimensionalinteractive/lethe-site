@@ -112,6 +112,24 @@ body::after {
     mix-blend-mode: screen;
 }
 
+/* Layer 1: persistent atmospheric field — the tractor factory,
+   fixed behind everything so the hero sits above the same field. */
+.site-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg,
+            rgba(10, 12, 16, 0.66) 0%,
+            rgba(10, 12, 16, 0.88) 34%,
+            rgba(10, 12, 16, 0.96) 78%),
+        url("assets/factory-ruin-bg.jpg") center 22% / cover no-repeat;
+    filter: saturate(0.45) contrast(1.05) brightness(0.42);
+    transform: translateZ(0);
+    will-change: transform;
+}
+
 /* Layer 2+3: very low-opacity duotone map + faint tractor factory silhouette */
 body::before {
     content: "";
@@ -314,12 +332,14 @@ a {
 .hero-image {
     background: url("assets/factory-ruin-bg.jpg") center 22% / cover no-repeat;
     filter: saturate(0.45) contrast(1.05) brightness(0.42);
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 .hero-scrim {
     background:
-        linear-gradient(90deg, rgba(10, 12, 16, 0.9), rgba(19, 23, 33, 0.5) 48%, rgba(10, 12, 16, 0.82)),
-        linear-gradient(0deg, var(--near-black) 0%, transparent 46%);
+        linear-gradient(0deg, var(--near-black) 0%, transparent 40%),
+        linear-gradient(180deg, rgba(10, 12, 16, 0.25), transparent 26%);
 }
 
 .hero-content {
