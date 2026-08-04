@@ -1043,7 +1043,8 @@ a {
     .reference-study,
     .marker-grid,
     .archive-item,
-    .correspondence-panel {
+    .correspondence-panel,
+    .correspondence-figure {
         opacity: 1;
         transform: none;
     }
