@@ -1,0 +1,28 @@
+﻿YOU ARE STILL INSIDE IT
+Complete AI Build SpecificationVersion 1.0 (Concise Master)
+PRIMARY DIRECTIVE
+Rebuild the website from this specification. Preserve the artist's voice. Correct only grammar, syntax, punctuation, and transcription errors. Do not invent historical facts, captions, coordinates, archive numbers, quotations, or curatorial language.
+DESIGN OBJECTIVE
+The site is a unified artistic environment centered on the paintings. It is not a portfolio, military-history site, museum archive, blog, or luxury brand. The visitor should leave interested and compelled.
+HERO
+Title: YOU ARE STILL INSIDE ITSubtitle: An inward encounter through the Eastern Front.Do not place LETHE in the hero. Do not add quotations, dates, coordinates, 'Enter', or 'Scroll'.
+SITE ORDER
+1. Hero2. Featured Painting3. THE WORK4. WORKS5. WHAT REMAINS6. CONVERSATION7. PRACTICE8. FIELD NOTES / ARCHIVE9. ABOUT10. CORRESPONDENCE11. LETHE12. Footer
+VISUAL IDENTITY
+Atmosphere: oxidized steel, petroleum blue, oil-slick interference, soot, weathered paper, industrial dusk. Paintings are always the brightest and most important visual element.
+COLOR SYSTEM
+Foundation: Near Black, Deep Blue Black, Midnight Indigo, Gunmetal.Atmosphere: Petroleum Blue, Oxidized Cyan, Blued Steel, Verdigris.Accents: Rust Oxide, Burnt Copper, Ember.Neutral: Bone, Weathered Paper.
+TYPOGRAPHY
+Display: Fette Engschrift â†’ DIN 1451 Engschrift.Section titles: DIN 1451 Engschrift.Navigation: DIN 1451 Mittelschrift.Body: FF DIN with Bahnschrift fallback.Tannenberg only as a rare licensed accent.
+BACKGROUND
+Static low-opacity duotone 1942 Stalingrad map over near-black base with faint Tractor Factory silhouette, oil-slick oxidation colors, and fine grain. Simplify on mobile.
+IMAGE SYSTEM
+Keep existing reference photograph beside its corresponding painting. Do not add or replace photographs. Painting remains dominant. Display only Title, Year, Medium, Dimensions.
+EDITORIAL
+Use only approved copy. Remove AI, marketing, institutional, and generic curatorial language. Preserve cadence, metaphors, and vocabulary.
+ARCHIVE
+FIELD NOTES / ARCHIVE uses verified images, dates, and sources. Mark unknown information as unverified. Separate archival description, observation, and interpretation.
+CONTACT
+ABOUT is concise. CORRESPONDENCE contains email and Instagram only. LETHE appears only near the end as the moniker for the body of work.
+NON-NEGOTIABLE
+Every design decision must strengthen the paintings. Never rewrite the artist's voice. Never invent history. Never change artwork/reference pairings. Never allow the background to overpower the paintings.

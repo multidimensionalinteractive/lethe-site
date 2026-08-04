@@ -1,0 +1,26 @@
+﻿YOU ARE STILL INSIDE IT
+Creative Direction & Complete Build SpecificationVersion 1.0 (Draft)
+Purpose
+This document is the authoritative specification for rebuilding the website. It preserves the approved structure, visual language, and editorial voice. Do not rewrite the artist's prose, invent historical content, or substitute generic art-world language.
+Creative Direction
+The site is not a portfolio, museum site, military-history site, or blog.It is a unified artistic environment built around the paintings.Emotional objective: visitors leave interested and compelled.The paintings remain the primary experience; history, research, maps, and text support them.
+Visual Identity
+Visual language: oxidized steel, petroleum blue, oil-slick iridescence, rust, soot, weathered paper, restrained light.Hero contains only:YOU ARE STILL INSIDE ITAn inward encounter through the Eastern Front.Do not place LETHE in the hero.
+Typography
+Display: Fette Engschrift â†’ DIN 1451 Engschrift.Section titles: DIN 1451 Engschrift.Navigation: DIN 1451 Mittelschrift.Body: FF DIN with Bahnschrift fallback.Use Tannenberg only as a rare accent if licensed.
+Color System
+Foundation: near black, deep blue-black, midnight indigo, gunmetal.Atmosphere: petroleum blue, oxidized cyan, blued steel, verdigris.Accents: rust oxide, burnt copper, ember.Neutral: bone, aged paper.The paintings remain the most saturated elements.
+Background System
+Layer 1: near-black foundation.Layer 2: low-opacity duotone 1942 Stalingrad map.Layer 3: faint Tractor Factory silhouette.Layer 4: oxidation colors.Layer 5: fine photographic grain.Background is static on desktop and simplified on mobile.
+Information Architecture
+HeroFeatured PaintingTHE WORKWORKSWHAT REMAINSCONVERSATIONPRACTICEFIELD NOTES / ARCHIVEABOUTCORRESPONDENCELETHEFooter
+Editorial Rules
+Preserve vocabulary, cadence, metaphors, and first-person voice.Correct only grammar, syntax, punctuation, and transcription.Never add institutional, marketing, curatorial, or AI-sounding language.Do not invent captions, coordinates, archive numbers, quotations, or historical claims.
+Artwork Presentation
+Keep existing reference photograph beside the corresponding painting.Do not add or replace photographs.Painting remains dominant.Display only title, year, medium, and dimensions.
+Archive
+FIELD NOTES / ARCHIVE should contain verified images, dates, and sources only.Unknown information remains marked as unverified.Differentiate archival description, observation, and interpretation.
+Implementation Rules
+Use generous whitespace.Minimal animation.No autoplay.No parallax.No cards or template aesthetics.Responsive, accessible, and performance-focused.
+Next Revision
+This draft forms the foundation of the full manual.Future editions should expand each chapter with wireframes, CSS variables, component specifications,desktop/mobile layouts, spacing scales, and production-ready implementation details.

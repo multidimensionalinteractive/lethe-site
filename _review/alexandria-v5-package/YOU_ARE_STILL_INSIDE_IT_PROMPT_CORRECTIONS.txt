@@ -1,0 +1,197 @@
+CORRECTIONS TO THE MASTER AI REBUILD PROMPT
+
+Apply these corrections exactly.
+
+1. TOP SITE HEADER
+
+Do not place “LETHE” in the top site header, hero, wordmark, or primary navigation.
+
+The hero must read only:
+
+YOU ARE STILL INSIDE IT
+
+An inward journey through the Eastern Front.
+
+Do not add:
+- LETHE
+- coordinates
+- dates
+- “Enter the Archive”
+- “Scroll”
+- any additional subtitle
+
+“LETHE” may appear only later in its own dedicated section and in the footer if already approved.
+
+2. ARTWORK + REFERENCE PHOTOGRAPH PAIRING
+
+Keep the existing reference photograph of the subject next to the artwork in which that subject appears.
+
+Do not remove the reference photograph when it is already paired with a finished work.
+
+Do not add any new reference photographs.
+
+Do not substitute, replace, search for, generate, enhance, reinterpret, or invent new source photographs.
+
+Use only the exact reference photographs already present on the current site and only beside the specific artwork to which they already belong.
+
+For each paired presentation:
+
+LEFT OR FIRST:
+Reference photograph already used on the current site
+
+RIGHT OR SECOND:
+Finished artwork based on that subject
+
+On mobile:
+Reference photograph first
+Artwork second
+
+Do not crop either image aggressively.
+Preserve the original aspect ratio.
+Do not apply decorative color effects to the artwork.
+The reference photograph may receive a very restrained neutral or duotone treatment only if necessary for consistency, but it must remain historically legible.
+
+Show only verified metadata already attached to the work.
+
+Do not add:
+- new photographs
+- speculative captions
+- invented identities
+- inferred military units
+- invented dates
+- invented locations
+- invented archival numbers
+
+If the historical subject is unidentified, label only:
+
+SUBJECT UNIDENTIFIED
+
+3. FONT FLOW
+
+Use the fonts as a coherent hierarchy rather than mixing them arbitrarily.
+
+PRIMARY DISPLAY FONT
+Use Fette Engschrift or DIN 1451 Engschrift for:
+- the main hero title
+- major section titles
+- selected artwork titles
+- large isolated phrases
+
+Use it sparingly and at large scale.
+
+SECONDARY STRUCTURAL FONT
+Use DIN 1451 Mittelschrift or FF DIN for:
+- navigation
+- section labels
+- archive labels
+- buttons
+- metadata
+- dates
+- artwork details
+- captions
+- source information
+
+BODY FONT
+Use FF DIN or Bahnschrift for:
+- artist statement
+- interview introduction
+- practice text
+- academic-veracity text
+- contact text
+- longer passages
+
+HISTORICAL ACCENT
+Use Tannenberg only once or twice, at small scale, if a properly licensed version is available.
+
+Do not use Tannenberg for:
+- the hero
+- navigation
+- paragraph text
+- repeated headings
+- artwork titles
+
+Do not use Element unless the exact licensed font version is known.
+
+FALLBACK ORDER
+
+Display:
+"Fette Engschrift", "DIN 1451 Engschrift", "Bahnschrift Condensed", "Arial Narrow", sans-serif
+
+Structural:
+"DIN 1451 Mittelschrift", "FF DIN", "Bahnschrift", Arial, sans-serif
+
+Body:
+"FF DIN", "DIN 1451 Mittelschrift", "Bahnschrift", Arial, sans-serif
+
+DESIGN RULE
+
+The typography should move from severe and condensed at the largest scale to calm and highly legible at reading scale.
+
+Do not use all fonts in every section.
+
+Do not distress the letterforms.
+
+Do not imitate propaganda posters.
+
+Do not use blackletter as the dominant visual language.
+
+Do not change the approved site text to fit the typography. Adjust line breaks, width, scale, and spacing instead.
+
+4. HERO REVISION
+
+Replace the previous hero instruction with:
+
+HERO COPY
+
+YOU ARE STILL INSIDE IT
+
+An inward journey through the Eastern Front.
+
+The title should dominate the screen.
+
+Do not place “LETHE” above, below, beside, or inside the title.
+
+Use the duotone Stalingrad map and one approved ruin image as the atmospheric background.
+
+The map and ruin image must remain subordinate to the title and artwork.
+
+5. SELECTED WORKS REVISION
+
+Replace the previous Selected Works instruction with:
+
+SELECTED WORKS
+
+Preserve the current relationship between each finished artwork and its existing photographic subject reference.
+
+When a work currently has a reference photograph beside it, retain that pairing.
+
+Do not add reference photography to works that do not already have it.
+
+Do not search for replacement photographs.
+
+Do not generate photographs.
+
+Do not use unrelated archival imagery for visual effect.
+
+For each work show only:
+
+TITLE
+Year
+Medium
+Dimensions
+
+Show source metadata for the reference photograph only when already verified.
+
+The artwork remains visually dominant.
+
+6. FINAL NON-NEGOTIABLE CHECK
+
+Before publishing, confirm:
+
+- “LETHE” does not appear in the top header or hero.
+- No new photographs have been added.
+- Existing subject-reference photographs remain paired with the correct artworks.
+- No artwork-reference relationship has been changed.
+- The font hierarchy is consistent and restrained.
+- Body text remains highly legible.
+- The approved copy has not been rewritten.
