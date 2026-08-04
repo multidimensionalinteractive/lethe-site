@@ -58,7 +58,8 @@ function openImageLightbox(image) {
     ensureImageLightbox();
     const figure = image.closest("figure");
     const caption = figure?.querySelector("figcaption")?.textContent?.trim() || image.alt || "Selected work";
-    lightboxImage.src = image.currentSrc || image.src;
+    const fullSrc = image.getAttribute("data-full-src");
+    lightboxImage.src = fullSrc || image.currentSrc || image.src;
     lightboxImage.alt = image.alt || caption;
     lightboxCaption.textContent = caption;
     imageLightbox.classList.add("is-open");
@@ -86,7 +87,6 @@ document.addEventListener("keydown", (event) => {
 });
 
 const nav = document.querySelector(".site-nav");
-const siteBg = document.querySelector(".site-bg");
 const heroImage = document.querySelector(".hero-image");
 let bgParallaxTicking = false;
 
@@ -96,14 +96,12 @@ function updateBgParallax() {
     bgParallaxTicking = false;
     if (prefersReducedMotion) return;
     const y = window.scrollY || 0;
-    if (siteBg) {
-        siteBg.style.transform = `translate3d(0, ${y * 0.32}px, 0)`;
-    }
+    // Background map stays static (revision spec). Light hero depth only.
     if (heroImage) {
         const hero = heroImage.closest(".hero");
         const heroBottom = hero ? hero.offsetTop + hero.offsetHeight : 0;
         if (y < heroBottom) {
-            heroImage.style.transform = `translate3d(0, ${y * 0.4}px, 0) scale(1.06)`;
+            heroImage.style.transform = `translate3d(0, ${y * 0.28}px, 0) scale(1.04)`;
         }
     }
 }
