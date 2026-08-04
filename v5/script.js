@@ -6,7 +6,7 @@ const revealObserver = new IntersectionObserver((entries) => {
     });
 }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
 
-document.querySelectorAll(".section, .featured, .works-head, .archive-head, .work, .reference-study, .marker-grid, .archive-item, .correspondence-panel").forEach((section) => {
+document.querySelectorAll(".section, .featured, .works-head, .archive-head, .work, .reference-study, .marker-grid, .archive-item, .correspondence-panel, .correspondence-figure").forEach((section) => {
     revealObserver.observe(section);
 });
 
