@@ -921,22 +921,24 @@ a {
 /* ---------- footer ---------- */
 .site-footer {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1.5rem 2.5rem;
-    padding: 2.5rem var(--space-page) 3rem;
+    justify-content: center;
+    gap: 2rem;
+    padding: 2.5rem var(--space-page) 3.25rem;
     color: var(--bone-faint);
     font-family: var(--font-struct);
     font-size: 12px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     border-top: 1px solid var(--line);
+    text-align: center;
 }
 
 .footer-identity {
     display: flex;
     align-items: center;
+    justify-content: center;
     flex-wrap: wrap;
     gap: 0.5rem 2rem;
 }
@@ -954,24 +956,25 @@ a {
 
 .footer-support {
     display: grid;
-    gap: 0.65rem;
-    justify-items: start;
+    gap: 0.85rem;
+    justify-items: center;
+    text-align: center;
 }
 
 .footer-support-label {
     margin: 0;
     color: var(--muted-crimson);
     font-family: var(--font-struct);
-    font-size: 11px;
+    font-size: clamp(14px, 1.8vw, 18px);
     font-weight: 600;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
 }
 
 .footer-venmo {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.9rem;
+    display: grid;
+    justify-items: center;
+    gap: 0.85rem;
     text-decoration: none;
     color: inherit;
     transition: color 180ms ease;
@@ -982,17 +985,19 @@ a {
 }
 
 .footer-venmo-qr {
-    width: 5.5rem;
-    height: 5.5rem;
+    width: 8.5rem;
+    height: 8.5rem;
     display: block;
-    flex-shrink: 0;
-    background: rgba(226, 216, 200, 0.06);
-    box-shadow: var(--edge-hi);
+    background: #fff;
+    padding: 0.45rem;
+    box-sizing: border-box;
+    box-shadow: var(--shadow-soft), var(--edge-hi);
 }
 
 .footer-venmo-text {
     display: grid;
     gap: 0.35rem;
+    justify-items: center;
 }
 
 .footer-venmo-name {
@@ -1006,7 +1011,7 @@ a {
 .footer-venmo-handle {
     color: var(--sulfur);
     font-family: var(--font-struct);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: none;
@@ -1014,8 +1019,7 @@ a {
 
 @media (max-width: 720px) {
     .site-footer {
-        flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
     }
 }
 
