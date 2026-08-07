@@ -920,19 +920,30 @@ a {
 
 /* ---------- footer ---------- */
 .site-footer {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 2rem;
-    padding: 2.5rem var(--space-page) 3.25rem;
+    /* Tall top pad so black fades into map above the identity line */
+    padding: clamp(5rem, 12vw, 8.5rem) var(--space-page) 3.25rem;
     color: var(--bone-faint);
     font-family: var(--font-struct);
     font-size: 12px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    border-top: 1px solid var(--line);
+    border-top: none;
     text-align: center;
+    background: linear-gradient(
+        180deg,
+        rgba(12, 11, 10, 0) 0%,
+        rgba(12, 11, 10, 0.35) 28%,
+        rgba(8, 7, 6, 0.82) 58%,
+        #050504 78%,
+        #000000 100%
+    );
 }
 
 .footer-identity {
