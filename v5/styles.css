@@ -624,12 +624,23 @@ a {
 
 .reference-card {
     display: grid;
-    align-content: end;
-    padding: clamp(1.25rem, 3vw, 2rem);
+    align-content: start;
+    gap: 0.85rem;
+    padding: clamp(1rem, 2.5vw, 1.5rem);
     border: 1px solid rgba(143, 52, 40, 0.4);
     background:
         linear-gradient(160deg, rgba(143, 52, 40, 0.12), transparent 44%),
         rgba(10, 12, 16, 0.9);
+}
+
+.reference-card img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    object-position: center 30%;
+    background: var(--near-black-2);
+    box-shadow: var(--edge-hi);
 }
 
 .reference-eyebrow {
@@ -641,18 +652,18 @@ a {
 }
 
 .reference-card h3 {
-    margin: 1rem 0 0.6rem;
+    margin: 0;
     color: var(--bone);
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: clamp(1.4rem, 3vw, 2.4rem);
-    line-height: 1.05;
+    font-size: clamp(1.2rem, 2.4vw, 1.85rem);
+    line-height: 1.1;
     text-transform: uppercase;
     text-shadow: none;
 }
 
 .reference-card p {
-    margin: 0 0 0.6rem;
+    margin: 0;
     color: var(--text);
 }
 
