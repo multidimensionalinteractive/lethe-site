@@ -484,7 +484,7 @@ a {
     justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
-    padding: 1.1rem 0.25rem 0.35rem;
+    padding: 1.1rem 1rem 0.5rem;
     color: var(--text-soft);
     font-family: var(--font-struct);
     font-size: 12px;
@@ -595,6 +595,31 @@ a {
     display: block;
     object-fit: cover;
     aspect-ratio: 1.24 / 1;
+}
+
+.reference-study figure figcaption {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1.15rem 1.15rem 1rem;
+    color: var(--text-soft);
+    font-family: var(--font-struct);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.reference-study figure figcaption h3 {
+    margin: 0 0 0.4rem;
+    color: var(--bone);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.65rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-shadow: none;
 }
 
 .reference-card {
