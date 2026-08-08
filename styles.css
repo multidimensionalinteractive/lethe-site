@@ -651,10 +651,12 @@ a {
 
 .reference-card img {
     width: 100%;
+    height: auto;
     display: block;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-    object-position: center 30%;
+    aspect-ratio: auto;
+    object-fit: contain;
+    object-position: center top;
+    max-height: min(72vh, 48rem);
     background: var(--near-black-2);
     box-shadow: var(--edge-hi);
     filter: sepia(0.18) saturate(0.65) contrast(1.02);
