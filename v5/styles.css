@@ -904,6 +904,19 @@ a {
     text-shadow: none;
 }
 
+.archive-item h3 a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 160ms ease, color 160ms ease;
+}
+
+.archive-item h3 a:hover,
+.archive-item h3 a:focus-visible {
+    color: var(--rust);
+    border-bottom-color: color-mix(in srgb, var(--rust) 55%, transparent);
+}
+
 .archive-note {
     margin: 0 0 0.8rem;
     color: var(--text);
