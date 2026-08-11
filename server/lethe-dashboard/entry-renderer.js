@@ -33,17 +33,29 @@ function normalizeEntry(input, existing = {}) {
     const excerpt = String(input?.excerpt || existing.excerpt || plainSummary(content)).trim();
     const requestedSlug = String(input?.slug || existing.slug || title || "").trim();
     const status = input?.status === "published" ? "published" : "draft";
+    const type = ["field-observation", "dispatch", "interview"].includes(input?.type || existing.type)
+        ? (input?.type || existing.type)
+        : "dispatch";
+    const figures = Array.isArray(input?.figures)
+        ? input.figures
+        : (Array.isArray(existing.figures) ? existing.figures : []);
 
     if (!title) throw new Error("Entry title is required.");
     if (status === "published" && !content) throw new Error("Published entries need body content.");
 
     return {
         id: String(input?.id || existing.id || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`),
+        type,
         title,
         slug: slugify(requestedSlug || title),
+        kicker: String(input?.kicker ?? existing.kicker ?? "").trim(),
+        deck: String(input?.deck ?? existing.deck ?? excerpt).trim(),
+        byline: String(input?.byline ?? existing.byline ?? "").trim(),
         excerpt,
         content,
+        figures,
         status,
+        livePath: String(input?.livePath || existing.livePath || "").trim(),
         createdAt: existing.createdAt || now,
         updatedAt: now,
         publishedAt: status === "published" ? (existing.publishedAt || now) : (existing.publishedAt || "")
@@ -92,6 +104,48 @@ function renderRichText(text) {
     }).join("\n");
 }
 
+function renderFigure(figure) {
+    const src = escapeHtml(figure.src || "");
+    const alt = escapeHtml(figure.alt || "");
+    const caption = escapeHtml(figure.caption || "field archive");
+    return `<figure class="entry-inline-figure">
+                <img src="${src}" alt="${alt}">
+                <figcaption>${caption}</figcaption>
+            </figure>`;
+}
+
+function renderProseWithFigures(content, figures = []) {
+    const blocks = String(content || "")
+        .split(/\n{2,}/)
+        .map((block) => block.trim())
+        .filter(Boolean);
+
+    const byAfter = new Map();
+    for (const figure of figures) {
+        const key = Number.isInteger(figure.afterIndex) ? figure.afterIndex : -1;
+        if (!byAfter.has(key)) byAfter.set(key, []);
+        byAfter.get(key).push(figure);
+    }
+
+    const parts = [];
+    if (byAfter.has(-1)) {
+        for (const figure of byAfter.get(-1)) parts.push(renderFigure(figure));
+    }
+
+    blocks.forEach((block, index) => {
+        if (block.startsWith("## ")) {
+            parts.push(`<h2>${escapeHtml(block.slice(3).trim())}</h2>`);
+        } else {
+            parts.push(`<p>${block.split("\n").map((line) => escapeHtml(line.trim())).join("<br>")}</p>`);
+        }
+        if (byAfter.has(index)) {
+            for (const figure of byAfter.get(index)) parts.push(renderFigure(figure));
+        }
+    });
+
+    return parts.join("\n\n            ") || "<p>Entry text forthcoming.</p>";
+}
+
 function renderNav(prefix) {
     return `<nav class="site-nav" aria-label="Primary navigation">
         <a class="nav-mark" href="${prefix}">
@@ -109,8 +163,8 @@ function renderNav(prefix) {
     </nav>`;
 }
 
-function renderHead({ title, description, canonical, prefix, type = "website" }) {
-    const image = `https://youarestillinsideit.com/${DEFAULT_IMAGE}`;
+function renderHead({ title, description, canonical, prefix, type = "website", stylesheet = "styles-v1.css", imagePath = DEFAULT_IMAGE, cache = "dashboard-entries-20260811" }) {
+    const image = `https://youarestillinsideit.com/${imagePath.replace(/^\//, "")}`;
     return `<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -125,15 +179,13 @@ function renderHead({ title, description, canonical, prefix, type = "website" })
     <meta property="og:image" content="${image}">
     <meta property="og:image:secure_url" content="${image}">
     <meta property="og:image:type" content="image/jpeg">
-    <meta property="og:image:width" content="1280">
-    <meta property="og:image:height" content="631">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${escapeHtml(title)}">
     <meta name="twitter:description" content="${escapeHtml(description)}">
     <meta name="twitter:image" content="${image}">
     <link rel="icon" type="image/jpeg" href="${prefix}assets/favicon-lethe.jpg">
     <link rel="apple-touch-icon" href="${prefix}assets/favicon-lethe.jpg">
-    <link rel="stylesheet" href="${prefix}styles.css?v=all-images-lightbox-20260617">
+    <link rel="stylesheet" href="${prefix}${stylesheet}?v=${cache}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
@@ -141,7 +193,7 @@ function renderHead({ title, description, canonical, prefix, type = "website" })
 }
 
 function renderDispatchIndex(entries) {
-    const published = entries.filter((entry) => entry.status === "published");
+    const published = entries.filter((entry) => entry.status === "published" && entry.type !== "field-observation" && entry.type !== "interview");
     const cards = published.length ? published.map((entry, index) => `<a class="dispatch-card" href="${escapeHtml(entry.slug)}/">
                 <span class="dispatch-number">${String(index + 1).padStart(3, "0")}</span>
                 <div>
@@ -162,7 +214,8 @@ ${renderHead({
     title: `Dispatches | ${SITE_TITLE}`,
     description: "Dispatches, studio notes, and published entries from the YOU ARE STILL INSIDE IT archive.",
     canonical: "https://youarestillinsideit.com/dispatches/",
-    prefix: "../"
+    prefix: "../",
+    stylesheet: "styles-v1.css"
 })}
 <body class="dispatches-page">
     ${renderNav("../")}
@@ -189,7 +242,7 @@ ${renderHead({
         <strong>THE FRONT NEVER ENDED.</strong>
     </footer>
 
-    <script src="../script.js?v=all-images-lightbox-20260617"></script>
+    <script src="../script-v1.js?v=dashboard-entries-20260811"></script>
 </body>
 </html>`;
 }
@@ -205,7 +258,8 @@ ${renderHead({
     description,
     canonical: `https://youarestillinsideit.com/dispatches/${entry.slug}/`,
     prefix: "../../",
-    type: "article"
+    type: "article",
+    stylesheet: "styles-v1.css"
 })}
 <body class="dispatches-page dispatch-entry-page">
     ${renderNav("../../")}
@@ -237,7 +291,7 @@ ${renderHead({
         <strong>THE FRONT NEVER ENDED.</strong>
     </footer>
 
-    <script src="../../script.js?v=all-images-lightbox-20260617"></script>
+    <script src="../../script-v1.js?v=dashboard-entries-20260811"></script>
 </body>
 </html>`;
 }
@@ -245,7 +299,7 @@ ${renderHead({
 function renderDispatchFiles(entries) {
     const files = new Map();
     const published = entries
-        .filter((entry) => entry.status === "published")
+        .filter((entry) => entry.status === "published" && entry.type !== "field-observation" && entry.type !== "interview")
         .sort((a, b) => String(b.publishedAt || b.updatedAt).localeCompare(String(a.publishedAt || a.updatedAt)));
 
     files.set("dispatches/index.html", renderDispatchIndex(published));
@@ -256,8 +310,242 @@ function renderDispatchFiles(entries) {
     return files;
 }
 
+function firstFigureImage(entry) {
+    const figure = (entry.figures || [])[0];
+    if (!figure?.src) return DEFAULT_IMAGE;
+    return String(figure.src)
+        .replace(/^\.\.\/\.\.\//, "")
+        .replace(/^\.\.\//, "")
+        .replace(/\?.*$/, "");
+}
+
+function renderFieldObservationEntry(entry) {
+    const kicker = entry.kicker || "FIELD OBSERVATIONS";
+    const deck = entry.deck || entry.excerpt || plainSummary(entry.content);
+    const byline = entry.byline || "Written by Lethe";
+    const description = `${kicker}. ${deck}`.slice(0, 220);
+    const imagePath = firstFigureImage(entry);
+
+    return `<!DOCTYPE html>
+<html lang="en">
+${renderHead({
+    title: `${entry.title} | ${SITE_TITLE}`,
+    description,
+    canonical: `https://youarestillinsideit.com/field-observations/${entry.slug}/`,
+    prefix: "../../",
+    type: "article",
+    stylesheet: "styles-v1.css",
+    imagePath
+})}
+<body class="observations-page observation-entry-page">
+    ${renderNav("../../")}
+
+    <header class="entry-hero interior-front-hero field-archive-august-hero">
+        <div>
+            <p class="kicker">${escapeHtml(kicker)}</p>
+            <h1>${escapeHtml(entry.title)}</h1>
+            <p class="entry-deck">${escapeHtml(deck)}</p>
+            <p class="entry-byline">${escapeHtml(byline)}</p>
+        </div>
+    </header>
+
+    <main class="entry-layout">
+        <aside class="entry-meta" aria-label="Entry metadata">
+            <span>001</span>
+            <p>${escapeHtml(formatDate(entry.publishedAt))}</p>
+            <p>${escapeHtml(kicker)}</p>
+            <p>Edited from the LETHE dashboard.</p>
+        </aside>
+
+        <article class="entry-prose">
+            ${renderProseWithFigures(entry.content, entry.figures)}
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <span>${SITE_TITLE}</span>
+        <span>${escapeHtml(kicker)}</span>
+        <strong>THE FRONT NEVER ENDED.</strong>
+    </footer>
+
+    <script src="../../script-v1.js?v=dashboard-entries-20260811"></script>
+</body>
+</html>`;
+}
+
+function renderInterviewEntry(entry) {
+    const kicker = entry.kicker || "interview";
+    const deck = entry.deck || entry.excerpt || plainSummary(entry.content);
+    const description = deck.slice(0, 220);
+
+    return `<!DOCTYPE html>
+<html lang="en">
+${renderHead({
+    title: `${entry.title} | ${SITE_TITLE}`,
+    description,
+    canonical: entry.livePath?.includes("v3/")
+        ? `https://youarestillinsideit.com/v3/interview/`
+        : `https://youarestillinsideit.com/field-observations/${entry.slug}/`,
+    prefix: entry.livePath?.startsWith("v3/") ? "../../" : "../../",
+    type: "article",
+    stylesheet: entry.livePath?.startsWith("v3/") ? "styles.css" : "styles-v1.css",
+    imagePath: "assets/viktor.jpg"
+})}
+<body>
+    ${renderNav(entry.livePath?.startsWith("v3/") ? "../" : "../../")}
+
+    <header class="interview-hero entry-hero">
+        <div>
+            <p class="kicker">${escapeHtml(kicker)}</p>
+            <h1>${escapeHtml(entry.title)}</h1>
+            <p class="interview-deck entry-deck">${escapeHtml(deck)}</p>
+            <p class="interview-meta entry-byline">${escapeHtml(entry.byline || "LETHE — ALEXANDRIA CHANEL — 2026")}</p>
+        </div>
+    </header>
+
+    <main class="interview-layout entry-layout">
+        <article class="interview-prose entry-prose">
+            ${renderRichText(entry.content)}
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <span>${SITE_TITLE}</span>
+        <span>${escapeHtml(entry.title)}</span>
+        <strong>2026</strong>
+    </footer>
+</body>
+</html>`;
+}
+
+function renderFieldObservationFiles(entries) {
+    const files = new Map();
+    const published = entries.filter((entry) => entry.status === "published" && (entry.type === "field-observation" || entry.type === "interview"));
+
+    for (const entry of published) {
+        const livePath = entry.livePath || `field-observations/${entry.slug}/index.html`;
+        if (entry.type === "interview") {
+            files.set(livePath, renderInterviewEntry(entry));
+        } else {
+            files.set(livePath, renderFieldObservationEntry(entry));
+        }
+    }
+
+    return files;
+}
+
+function decodeEntities(value) {
+    return String(value || "")
+        .replace(/&nbsp;/g, " ")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, "\"")
+        .replace(/&#39;/g, "'")
+        .replace(/&#x2600;&#xFE0E;|☀︎/g, "☀︎");
+}
+
+function htmlToPlainBlock(html) {
+    return decodeEntities(String(html || "")
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<[^>]+>/g, "")
+        .replace(/\r/g, "")
+        .trim());
+}
+
+function extractSeedFromFieldObservationHtml(html, meta) {
+    const kickerMatch = html.match(/<p class="kicker">([\s\S]*?)<\/p>/i);
+    const titleMatch = html.match(/<h1>([\s\S]*?)<\/h1>/i);
+    const deckMatch = html.match(/<p class="entry-deck">([\s\S]*?)<\/p>/i);
+    const bylineMatch = html.match(/<p class="entry-byline">([\s\S]*?)<\/p>/i);
+    const articleMatch = html.match(/<article class="entry-prose">([\s\S]*?)<\/article>/i);
+    const article = articleMatch ? articleMatch[1] : "";
+
+    const figures = [];
+    const blocks = [];
+    const tokenRe = /<(h2|p|figure)(\s[^>]*)?>([\s\S]*?)<\/\1>/gi;
+    let match;
+    let paragraphIndex = -1;
+
+    while ((match = tokenRe.exec(article)) !== null) {
+        const tag = match[1].toLowerCase();
+        if (tag === "figure") {
+            const srcMatch = match[0].match(/src="([^"]+)"/i);
+            const altMatch = match[0].match(/alt="([^"]*)"/i);
+            const captionMatch = match[0].match(/<figcaption>([\s\S]*?)<\/figcaption>/i);
+            figures.push({
+                src: srcMatch ? srcMatch[1] : "",
+                alt: altMatch ? decodeEntities(altMatch[1]) : "",
+                caption: captionMatch ? htmlToPlainBlock(captionMatch[1]) : "",
+                afterIndex: paragraphIndex
+            });
+            continue;
+        }
+
+        if (tag === "h2") {
+            blocks.push(`## ${htmlToPlainBlock(match[3])}`);
+            paragraphIndex = blocks.length - 1;
+            continue;
+        }
+
+        const text = htmlToPlainBlock(match[3]);
+        if (!text || text === "—" || text === "—") continue;
+        if (match[0].includes("<hr")) continue;
+        blocks.push(text);
+        paragraphIndex = blocks.length - 1;
+    }
+
+    // Drop lone hr artifacts already skipped; keep prose.
+    return {
+        ...meta,
+        title: htmlToPlainBlock(titleMatch?.[1] || meta.title),
+        kicker: htmlToPlainBlock(kickerMatch?.[1] || meta.kicker || ""),
+        deck: htmlToPlainBlock(deckMatch?.[1] || meta.deck || ""),
+        byline: htmlToPlainBlock(bylineMatch?.[1] || meta.byline || ""),
+        content: blocks.join("\n\n"),
+        figures,
+        excerpt: htmlToPlainBlock(deckMatch?.[1] || meta.excerpt || "").slice(0, 220)
+    };
+}
+
+function extractSeedFromInterviewHtml(html, meta) {
+    const kickerMatch = html.match(/<p class="kicker">([\s\S]*?)<\/p>/i);
+    const titleMatch = html.match(/<h1>([\s\S]*?)<\/h1>/i);
+    const deckMatch = html.match(/<p class="interview-deck">([\s\S]*?)<\/p>/i);
+    const bylineMatch = html.match(/<p class="interview-meta">([\s\S]*?)<\/p>/i);
+    const articleMatch = html.match(/<article class="interview-prose">([\s\S]*?)<\/article>/i);
+    const article = articleMatch ? articleMatch[1] : "";
+
+    const blocks = [];
+    const tokenRe = /<(h2|p)(\s[^>]*)?>([\s\S]*?)<\/\1>/gi;
+    let match;
+    while ((match = tokenRe.exec(article)) !== null) {
+        if (match[0].includes("interview-signoff") || match[0].includes("section-actions")) continue;
+        if (match[1].toLowerCase() === "h2") {
+            blocks.push(`## ${htmlToPlainBlock(match[3])}`);
+        } else {
+            const text = htmlToPlainBlock(match[3]);
+            if (text) blocks.push(text);
+        }
+    }
+
+    return {
+        ...meta,
+        title: htmlToPlainBlock(titleMatch?.[1] || meta.title),
+        kicker: htmlToPlainBlock(kickerMatch?.[1] || meta.kicker || "interview"),
+        deck: htmlToPlainBlock(deckMatch?.[1] || meta.deck || ""),
+        byline: htmlToPlainBlock(bylineMatch?.[1] || meta.byline || ""),
+        content: blocks.join("\n\n"),
+        excerpt: htmlToPlainBlock(deckMatch?.[1] || meta.excerpt || "").slice(0, 220),
+        figures: []
+    };
+}
+
 module.exports = {
     normalizeEntry,
     renderDispatchFiles,
+    renderFieldObservationFiles,
+    extractSeedFromFieldObservationHtml,
+    extractSeedFromInterviewHtml,
     slugify
 };

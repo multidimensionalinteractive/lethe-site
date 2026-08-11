@@ -12,10 +12,16 @@ const {
     extractJsonObject,
     summarizeOperations
 } = require("./proposal-engine");
-const { normalizeEntry, renderDispatchFiles } = require("./entry-renderer");
+const {
+    normalizeEntry,
+    renderDispatchFiles,
+    renderFieldObservationFiles,
+    extractSeedFromFieldObservationHtml,
+    extractSeedFromInterviewHtml
+} = require("./entry-renderer");
 
 const PORT = Number(process.env.PORT || 8787);
-const ACCESS_CODE = process.env.LETHE_DASHBOARD_ACCESS || "";
+const ACCESS_CODE = String(process.env.LETHE_DASHBOARD_ACCESS || "").trim();
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://127.0.0.1:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "gemma3:4b";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
@@ -453,7 +459,24 @@ async function pushProposal(payload) {
     };
 }
 
-async function readEntries() {
+function accessHeader(request) {
+    return String(request.headers["x-lethe-access"] || "").trim();
+}
+
+function assertAccess(request) {
+    if (!ACCESS_CODE) {
+        const error = new Error("Dashboard access is not configured.");
+        error.statusCode = 500;
+        throw error;
+    }
+    if (accessHeader(request) !== ACCESS_CODE) {
+        const error = new Error("Access code required.");
+        error.statusCode = 401;
+        throw error;
+    }
+}
+
+async function readEntriesRaw() {
     try {
         const raw = await fs.readFile(ENTRIES_FILE, "utf8");
         const parsed = JSON.parse(raw);
@@ -461,6 +484,74 @@ async function readEntries() {
     } catch (error) {
         if (error.code === "ENOENT") return [];
         throw error;
+    }
+}
+
+async function seedKnownPosts(existing) {
+    const byId = new Map(existing.map((entry) => [entry.id, entry]));
+    const seeds = [];
+
+    const augustPath = path.join(WORKTREE, "field-observations", "the-interior-front", "index.html");
+    try {
+        const html = await fs.readFile(augustPath, "utf8");
+        const seeded = extractSeedFromFieldObservationHtml(html, {
+            id: "field-obs-the-interior-front",
+            type: "field-observation",
+            slug: "the-interior-front",
+            status: "published",
+            livePath: "field-observations/the-interior-front/index.html",
+            publishedAt: "2026-08-09T00:00:00.000Z"
+        });
+        seeds.push(normalizeEntry(seeded, byId.get(seeded.id) || {}));
+    } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+    }
+
+    const interviewPath = path.join(WORKTREE, "v3", "interview", "index.html");
+    try {
+        const html = await fs.readFile(interviewPath, "utf8");
+        const seeded = extractSeedFromInterviewHtml(html, {
+            id: "interview-on-war-memory",
+            type: "interview",
+            slug: "interview",
+            status: "published",
+            livePath: "v3/interview/index.html",
+            publishedAt: "2026-08-02T00:00:00.000Z"
+        });
+        seeds.push(normalizeEntry(seeded, byId.get(seeded.id) || {}));
+    } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+    }
+
+    let changed = false;
+    const merged = existing.slice();
+    for (const seed of seeds) {
+        const index = merged.findIndex((entry) => entry.id === seed.id || (entry.slug === seed.slug && entry.type === seed.type));
+        if (index === -1) {
+            merged.push(seed);
+            changed = true;
+        } else if (!merged[index].content && seed.content) {
+            merged[index] = {
+                ...seed,
+                ...merged[index],
+                content: merged[index].content || seed.content,
+                figures: merged[index].figures?.length ? merged[index].figures : seed.figures
+            };
+            changed = true;
+        }
+    }
+
+    if (changed) await writeEntries(merged);
+    return merged;
+}
+
+async function readEntries() {
+    const existing = await readEntriesRaw();
+    try {
+        await ensureWorktree();
+        return await seedKnownPosts(existing);
+    } catch {
+        return existing;
     }
 }
 
@@ -492,34 +583,42 @@ async function saveEntry(payload, forcedStatus = "draft") {
     return { entry, entries: listEntries(nextEntries) };
 }
 
-async function writeDispatchFiles(entries) {
+async function writeSiteFiles(entries, pathsToStage, commitMessage) {
     await ensureWorktree();
 
-    const publishedSlugs = new Set(entries.filter((entry) => entry.status === "published").map((entry) => entry.slug));
+    const dispatchEntries = entries.filter((entry) => entry.type !== "field-observation" && entry.type !== "interview");
+    const publishedDispatchSlugs = new Set(
+        dispatchEntries.filter((entry) => entry.status === "published").map((entry) => entry.slug)
+    );
     const dispatchRoot = path.join(WORKTREE, "dispatches");
     await fs.mkdir(dispatchRoot, { recursive: true });
 
     const currentChildren = await fs.readdir(dispatchRoot, { withFileTypes: true }).catch(() => []);
     for (const child of currentChildren) {
-        if (child.isDirectory() && !publishedSlugs.has(child.name)) {
+        if (child.isDirectory() && !publishedDispatchSlugs.has(child.name)) {
             await fs.rm(path.join(dispatchRoot, child.name), { recursive: true, force: true });
         }
     }
 
-    const files = renderDispatchFiles(entries);
+    const files = new Map([
+        ...renderDispatchFiles(entries),
+        ...renderFieldObservationFiles(entries)
+    ]);
+
     for (const [file, content] of files.entries()) {
         const filePath = path.join(WORKTREE, file);
         await fs.mkdir(path.dirname(filePath), { recursive: true });
-        await fs.writeFile(filePath, content);
+        await fs.writeFile(filePath, content, "utf8");
     }
 
-    await runGit(["add", "-A", "dispatches"], { cwd: WORKTREE });
-    const status = await runGit(["status", "--porcelain", "--", "dispatches"], { cwd: WORKTREE });
+    const stagePaths = pathsToStage?.length ? pathsToStage : ["dispatches", "field-observations", "v3/interview"];
+    await runGit(["add", "-A", ...stagePaths], { cwd: WORKTREE });
+    const status = await runGit(["status", "--porcelain", "--", ...stagePaths], { cwd: WORKTREE });
     if (!status.stdout.trim()) {
         return { commit: "", changedFiles: [] };
     }
 
-    await runGit(["commit", "-m", "Update Lethe dispatches"], { cwd: WORKTREE });
+    await runGit(["commit", "-m", commitMessage], { cwd: WORKTREE });
     const commit = await runGit(["rev-parse", "--short", "HEAD"], { cwd: WORKTREE });
     await runGit(["push", "origin", REPO_BRANCH], { cwd: WORKTREE });
 
@@ -531,7 +630,18 @@ async function writeDispatchFiles(entries) {
 
 async function publishEntry(payload) {
     const saved = await saveEntry(payload, "published");
-    const push = await writeDispatchFiles(saved.entries);
+    const entry = saved.entry;
+    const stagePaths = entry.type === "interview"
+        ? [path.dirname(entry.livePath || "v3/interview/index.html")]
+        : entry.type === "field-observation"
+            ? ["field-observations"]
+            : ["dispatches"];
+    const message = entry.type === "field-observation"
+        ? `Update Field Observation: ${entry.title}`
+        : entry.type === "interview"
+            ? `Update interview: ${entry.title}`
+            : "Update Lethe dispatches";
+    const push = await writeSiteFiles(saved.entries, stagePaths, message);
     return { ...saved, ...push };
 }
 
@@ -547,7 +657,7 @@ async function deleteEntry(payload) {
     await writeEntries(nextEntries);
 
     const push = entry.status === "published"
-        ? await writeDispatchFiles(nextEntries)
+        ? await writeSiteFiles(nextEntries, undefined, "Update Lethe posts after delete")
         : { commit: "", changedFiles: [] };
 
     return { deletedId: id, entries: listEntries(nextEntries), ...push };
@@ -807,13 +917,12 @@ const server = http.createServer(async (request, response) => {
     }
 
     if (request.url === "/api/visits" && request.method === "GET") {
-        if (!ACCESS_CODE || request.headers["x-lethe-access"] !== ACCESS_CODE) {
-            return sendJson(response, 401, { error: "Access code required." }, allowedOrigin);
-        }
         try {
+            assertAccess(request);
             return sendJson(response, 200, await getVisitSummary(), allowedOrigin);
         } catch (error) {
-            return sendJson(response, 500, { error: error.message || "Could not load visits." }, allowedOrigin);
+            const status = error.statusCode || 500;
+            return sendJson(response, status, { error: error.message || "Could not load visits." }, allowedOrigin);
         }
     }
 
@@ -827,8 +936,10 @@ const server = http.createServer(async (request, response) => {
         }
     }
 
-    if (!ACCESS_CODE || request.headers["x-lethe-access"] !== ACCESS_CODE) {
-        return sendJson(response, 401, { error: "Access code required." }, allowedOrigin);
+    try {
+        assertAccess(request);
+    } catch (error) {
+        return sendJson(response, error.statusCode || 401, { error: error.message || "Access code required." }, allowedOrigin);
     }
 
     try {

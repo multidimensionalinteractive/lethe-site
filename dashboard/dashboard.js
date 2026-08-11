@@ -8,6 +8,8 @@ const accessCode = document.getElementById("access-code");
 const saveCode = document.getElementById("save-code");
 const rememberRow = document.getElementById("remember-row");
 const rememberAccess = document.getElementById("remember-access");
+const sessionRow = document.getElementById("session-row");
+const lockDashboard = document.getElementById("lock-dashboard");
 const clearChat = document.getElementById("clear-chat");
 const generatePreview = document.getElementById("generate-preview");
 const pushProposal = document.getElementById("push-proposal");
@@ -29,18 +31,23 @@ const mapDetailBody = document.getElementById("map-detail-body");
 const mapDetailClose = document.getElementById("map-detail-close");
 const entriesPanel = document.getElementById("entries-panel");
 const newEntry = document.getElementById("new-entry");
+const entryType = document.getElementById("entry-type");
 const entryTitle = document.getElementById("entry-title");
+const entryKicker = document.getElementById("entry-kicker");
 const entrySlug = document.getElementById("entry-slug");
+const entryDeck = document.getElementById("entry-deck");
+const entryByline = document.getElementById("entry-byline");
 const entryExcerpt = document.getElementById("entry-excerpt");
 const entryContent = document.getElementById("entry-content");
 const saveEntryDraft = document.getElementById("save-entry-draft");
 const publishEntry = document.getElementById("publish-entry");
+const viewEntry = document.getElementById("view-entry");
 const deleteEntry = document.getElementById("delete-entry");
 const entryStatus = document.getElementById("entry-status");
 const draftEntryList = document.getElementById("draft-entry-list");
 const publishedEntryList = document.getElementById("published-entry-list");
 
-const rememberedAccess = localStorage.getItem("letheDashboardAccess") || sessionStorage.getItem("letheDashboardAccess") || "";
+const rememberedAccess = (localStorage.getItem("letheDashboardAccess") || sessionStorage.getItem("letheDashboardAccess") || "").trim();
 
 const countryCoordinates = {
     "United States": [-98, 39], US: [-98, 39],
@@ -79,7 +86,8 @@ const state = {
     uploadedImage: null,
     countries: [],
     entries: [],
-    selectedEntryId: ""
+    selectedEntryId: "",
+    selectedFigures: []
 };
 
 const mapCountryByKey = new Map();
@@ -87,6 +95,7 @@ const mapCountryByKey = new Map();
 function setDashboardUnlocked(isUnlocked) {
     accessRow.hidden = isUnlocked;
     rememberRow.hidden = isUnlocked;
+    sessionRow.hidden = !isUnlocked;
     composer.hidden = !isUnlocked;
     proposalPanel.hidden = !isUnlocked;
     entriesPanel.hidden = !isUnlocked;
@@ -133,35 +142,69 @@ function slugify(value) {
         .slice(0, 72);
 }
 
+function liveUrlForEntry(entry) {
+    if (!entry) return "#";
+    if (entry.livePath) {
+        return `https://youarestillinsideit.com/${entry.livePath.replace(/index\.html$/, "")}`;
+    }
+    if (entry.type === "field-observation") return `https://youarestillinsideit.com/field-observations/${entry.slug}/`;
+    if (entry.type === "interview") return `https://youarestillinsideit.com/v3/interview/`;
+    return `https://youarestillinsideit.com/dispatches/${entry.slug}/`;
+}
+
+function typeLabel(type) {
+    if (type === "field-observation") return "Field Observation";
+    if (type === "interview") return "Interview";
+    return "Dispatch";
+}
+
 function currentEntryPayload() {
     return {
         id: state.selectedEntryId,
+        type: entryType.value,
         title: entryTitle.value.trim(),
+        kicker: entryKicker.value.trim(),
         slug: entrySlug.value.trim() || slugify(entryTitle.value),
+        deck: entryDeck.value.trim(),
+        byline: entryByline.value.trim(),
         excerpt: entryExcerpt.value.trim(),
-        content: entryContent.value.trim()
+        content: entryContent.value.trim(),
+        figures: state.selectedFigures
     };
 }
 
 function clearEntryEditor() {
     state.selectedEntryId = "";
+    state.selectedFigures = [];
+    entryType.value = "field-observation";
     entryTitle.value = "";
+    entryKicker.value = "";
     entrySlug.value = "";
+    entryDeck.value = "";
+    entryByline.value = "";
     entryExcerpt.value = "";
     entryContent.value = "";
     deleteEntry.disabled = true;
+    viewEntry.hidden = true;
     setEntryStatus("");
     entryTitle.focus();
 }
 
 function selectEntry(entry) {
     state.selectedEntryId = entry.id;
+    state.selectedFigures = Array.isArray(entry.figures) ? entry.figures : [];
+    entryType.value = entry.type || "dispatch";
     entryTitle.value = entry.title || "";
+    entryKicker.value = entry.kicker || "";
     entrySlug.value = entry.slug || "";
+    entryDeck.value = entry.deck || "";
+    entryByline.value = entry.byline || "";
     entryExcerpt.value = entry.excerpt || "";
     entryContent.value = entry.content || "";
     deleteEntry.disabled = false;
-    setEntryStatus(`${entry.status === "published" ? "Published Dispatch" : "Draft Entry"} loaded.`);
+    viewEntry.hidden = entry.status !== "published";
+    viewEntry.href = liveUrlForEntry(entry);
+    setEntryStatus(`${typeLabel(entry.type)} · ${entry.status === "published" ? "Published" : "Draft"} loaded.`);
 }
 
 function formatEntryDate(value) {
@@ -192,9 +235,7 @@ function renderEntryList(container, entries, emptyText) {
         const title = document.createElement("strong");
         title.textContent = entry.title;
         const meta = document.createElement("span");
-        meta.textContent = entry.status === "published"
-            ? `/${entry.slug}/ / ${formatEntryDate(entry.publishedAt)}`
-            : `/${entry.slug || "draft"}/ / updated ${formatEntryDate(entry.updatedAt)}`;
+        meta.textContent = `${typeLabel(entry.type)} · /${entry.slug || "draft"}/ · ${entry.status === "published" ? formatEntryDate(entry.publishedAt) : `updated ${formatEntryDate(entry.updatedAt)}`}`;
         button.append(title, meta);
         button.addEventListener("click", () => selectEntry(entry));
         container.appendChild(button);
@@ -206,12 +247,12 @@ function renderEntries(entries) {
     renderEntryList(
         draftEntryList,
         state.entries.filter((entry) => entry.status !== "published"),
-        "No draft entries yet."
+        "No draft posts yet."
     );
     renderEntryList(
         publishedEntryList,
         state.entries.filter((entry) => entry.status === "published"),
-        "No published Dispatches yet."
+        "No published posts yet. Seeded Field Observations appear after unlock."
     );
 }
 
@@ -313,13 +354,14 @@ function renderUploadedImage() {
 }
 
 async function unlockDashboard(code, { silent = false } = {}) {
+    const cleanCode = String(code || "").trim();
     const response = await fetch(`${API_BASE}/api/visits`, {
-        headers: { "X-Lethe-Access": code }
+        headers: { "X-Lethe-Access": cleanCode }
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "Access code did not work.");
 
-    state.accessCode = code;
+    state.accessCode = cleanCode;
     if (rememberAccess.checked) {
         localStorage.setItem("letheDashboardAccess", state.accessCode);
         sessionStorage.removeItem("letheDashboardAccess");
@@ -329,8 +371,18 @@ async function unlockDashboard(code, { silent = false } = {}) {
     }
     setDashboardUnlocked(true);
     renderVisits(data);
-    loadEntries();
+    await loadEntries();
     if (!silent) promptEl.focus();
+}
+
+function lockSession() {
+    sessionStorage.removeItem("letheDashboardAccess");
+    localStorage.removeItem("letheDashboardAccess");
+    state.accessCode = "";
+    accessCode.value = "";
+    setDashboardUnlocked(false);
+    clearEntryEditor();
+    renderEntries([]);
 }
 
 saveCode.addEventListener("click", async () => {
@@ -343,16 +395,18 @@ saveCode.addEventListener("click", async () => {
     try {
         await unlockDashboard(code);
     } catch (error) {
-        sessionStorage.removeItem("letheDashboardAccess");
-        localStorage.removeItem("letheDashboardAccess");
-        state.accessCode = "";
-        setDashboardUnlocked(false);
+        lockSession();
         addMessage("assistant", error.message, true);
         accessCode.focus();
     } finally {
         saveCode.disabled = false;
         saveCode.textContent = "Unlock";
     }
+});
+
+lockDashboard.addEventListener("click", () => {
+    lockSession();
+    addMessage("assistant", "Locked. Enter the access code to continue.");
 });
 
 clearChat.addEventListener("click", () => {
