@@ -1,4 +1,4 @@
-const API_BASE = "https://hermes-web.mdi.io/lethe-dashboard";
+const API_BASE = "https://mdi.io/lethe-dashboard";
 const messagesEl = document.getElementById("messages");
 const composer = document.getElementById("composer");
 const promptEl = document.getElementById("prompt");
