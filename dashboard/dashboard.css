@@ -440,6 +440,108 @@ button {
     border-color: var(--gold);
 }
 
+.entry-figures,
+.entry-draft-preview {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(10, 8, 12, 0.35);
+    padding: 0.85rem;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.entry-figures-header {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.entry-figures-note {
+    margin: 0;
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+.entry-figures-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+}
+
+.entry-figure-card {
+    display: grid;
+    gap: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--panel);
+    padding: 0.55rem;
+}
+
+.entry-figure-card.is-stale {
+    border-color: rgba(192, 57, 43, 0.55);
+}
+
+.entry-figure-card img,
+.entry-draft-preview-body img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    background: #1a1518;
+}
+
+.entry-figure-meta {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.entry-figure-meta strong,
+.entry-draft-preview-body h4,
+.entry-draft-preview-body figcaption {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink);
+}
+
+.entry-figure-meta span,
+.entry-draft-preview-body p,
+.entry-draft-preview-body figcaption {
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    line-height: 1.35;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.entry-draft-preview-body {
+    display: grid;
+    gap: 0.85rem;
+    max-height: 28rem;
+    overflow: auto;
+    padding-right: 0.25rem;
+}
+
+.entry-draft-preview-body p {
+    margin: 0;
+    white-space: pre-wrap;
+    color: var(--ink);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.entry-draft-preview-body figure {
+    margin: 0;
+    display: grid;
+    gap: 0.4rem;
+}
+
+.entry-draft-preview-body h4 {
+    margin: 0;
+    color: var(--gold);
+}
+
 .entry-actions {
     justify-content: flex-start;
     align-items: center;

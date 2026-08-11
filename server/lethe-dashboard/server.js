@@ -530,18 +530,30 @@ async function seedKnownPosts(existing) {
         if (index === -1) {
             merged.push(seed);
             changed = true;
-        } else if (
-            !merged[index].content
-            || merged[index].livePath !== seed.livePath
-            || (seed.type === "interview" && !String(merged[index].title || "").includes("Ricochet") && seed.title.includes("Ricochet"))
-        ) {
-            merged[index] = {
-                ...merged[index],
-                ...seed,
-                id: merged[index].id || seed.id,
-                createdAt: merged[index].createdAt || seed.createdAt
-            };
-            changed = true;
+        } else {
+            const current = merged[index];
+            const currentFigures = Array.isArray(current.figures) ? current.figures : [];
+            const seedFigures = Array.isArray(seed.figures) ? seed.figures : [];
+            const missingFigures = seedFigures.length > 0 && currentFigures.length === 0;
+            const mojibakeContent = /Ã.|â€|Ã¼|Ã¤|Ã¶|Ã„|Ãœ|Ã–/.test(String(current.content || ""));
+            const interviewTitleFix = seed.type === "interview"
+                && !String(current.title || "").includes("Ricochet")
+                && String(seed.title || "").includes("Ricochet");
+            if (
+                !current.content
+                || current.livePath !== seed.livePath
+                || missingFigures
+                || mojibakeContent
+                || interviewTitleFix
+            ) {
+                merged[index] = {
+                    ...current,
+                    ...seed,
+                    id: current.id || seed.id,
+                    createdAt: current.createdAt || seed.createdAt
+                };
+                changed = true;
+            }
         }
     }
 

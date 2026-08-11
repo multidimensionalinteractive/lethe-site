@@ -39,6 +39,11 @@ const entryDeck = document.getElementById("entry-deck");
 const entryByline = document.getElementById("entry-byline");
 const entryExcerpt = document.getElementById("entry-excerpt");
 const entryContent = document.getElementById("entry-content");
+const entryFigures = document.getElementById("entry-figures");
+const entryFiguresGrid = document.getElementById("entry-figures-grid");
+const entryFiguresNote = document.getElementById("entry-figures-note");
+const entryDraftPreview = document.getElementById("entry-draft-preview");
+const entryDraftPreviewBody = document.getElementById("entry-draft-preview-body");
 const saveEntryDraft = document.getElementById("save-entry-draft");
 const publishEntry = document.getElementById("publish-entry");
 const viewEntry = document.getElementById("view-entry");
@@ -158,6 +163,126 @@ function typeLabel(type) {
     return "Dispatch";
 }
 
+function contentBlocks(text = entryContent.value) {
+    return String(text || "")
+        .split(/\n{2,}/)
+        .map((block) => block.trim())
+        .filter(Boolean);
+}
+
+function figurePreviewUrl(src) {
+    const value = String(src || "").trim();
+    if (!value) return "";
+    if (/^https?:\/\//i.test(value) || value.startsWith("data:")) return value;
+    const cleaned = value.replace(/^(\.\.\/)+/, "").replace(/^\//, "");
+    return `https://youarestillinsideit.com/${cleaned}`;
+}
+
+function blockLabel(block, index) {
+    const plain = String(block || "").replace(/^##\s+/, "").replace(/\s+/g, " ").trim();
+    const snippet = plain.length > 72 ? `${plain.slice(0, 69)}…` : plain;
+    return snippet ? `After ¶${index + 1}: ${snippet}` : `After ¶${index + 1}`;
+}
+
+function renderFiguresPanel() {
+    const figures = Array.isArray(state.selectedFigures) ? state.selectedFigures : [];
+    const blocks = contentBlocks();
+    entryFiguresGrid.innerHTML = "";
+
+    if (!figures.length) {
+        entryFigures.hidden = true;
+        entryDraftPreview.hidden = true;
+        entryDraftPreviewBody.innerHTML = "";
+        return;
+    }
+
+    entryFigures.hidden = false;
+    const stale = figures.some((figure) => {
+        const after = Number.isInteger(figure.afterIndex) ? figure.afterIndex : -1;
+        return after >= blocks.length;
+    });
+    entryFiguresNote.textContent = stale
+        ? `${figures.length} image${figures.length === 1 ? "" : "s"} attached. One or more placements are past the end of the text — edit carefully before Publish.`
+        : `${figures.length} image${figures.length === 1 ? "" : "s"} attached separately from the text box. They stay with Save / Publish.`;
+
+    figures.forEach((figure, figureIndex) => {
+        const after = Number.isInteger(figure.afterIndex) ? figure.afterIndex : -1;
+        const card = document.createElement("article");
+        card.className = "entry-figure-card";
+        if (after >= blocks.length) card.classList.add("is-stale");
+
+        const img = document.createElement("img");
+        img.src = figurePreviewUrl(figure.src);
+        img.alt = figure.alt || figure.caption || `Figure ${figureIndex + 1}`;
+        img.loading = "lazy";
+
+        const meta = document.createElement("div");
+        meta.className = "entry-figure-meta";
+
+        const caption = document.createElement("strong");
+        caption.textContent = figure.caption || figure.alt || `Figure ${figureIndex + 1}`;
+
+        const placement = document.createElement("span");
+        if (after < 0) {
+            placement.textContent = "Before first paragraph";
+        } else if (after >= blocks.length) {
+            placement.textContent = `After ¶${after + 1} (missing — text shorter now)`;
+        } else {
+            placement.textContent = blockLabel(blocks[after], after);
+        }
+
+        meta.append(caption, placement);
+        card.append(img, meta);
+        entryFiguresGrid.appendChild(card);
+    });
+
+    renderDraftPreview(blocks, figures);
+}
+
+function renderDraftPreview(blocks = contentBlocks(), figures = state.selectedFigures) {
+    entryDraftPreviewBody.innerHTML = "";
+    if (!figures.length && !blocks.length) {
+        entryDraftPreview.hidden = true;
+        return;
+    }
+
+    entryDraftPreview.hidden = false;
+    const byAfter = new Map();
+    figures.forEach((figure) => {
+        const key = Number.isInteger(figure.afterIndex) ? figure.afterIndex : -1;
+        if (!byAfter.has(key)) byAfter.set(key, []);
+        byAfter.get(key).push(figure);
+    });
+
+    const appendFigures = (key) => {
+        (byAfter.get(key) || []).forEach((figure) => {
+            const figureEl = document.createElement("figure");
+            const img = document.createElement("img");
+            img.src = figurePreviewUrl(figure.src);
+            img.alt = figure.alt || "";
+            img.loading = "lazy";
+            const caption = document.createElement("figcaption");
+            caption.textContent = figure.caption || figure.alt || "";
+            figureEl.append(img, caption);
+            entryDraftPreviewBody.appendChild(figureEl);
+        });
+    };
+
+    appendFigures(-1);
+    blocks.forEach((block, index) => {
+        if (block.startsWith("## ")) {
+            const heading = document.createElement("h4");
+            heading.textContent = block.slice(3).trim();
+            entryDraftPreviewBody.appendChild(heading);
+        } else {
+            const paragraph = document.createElement("p");
+            paragraph.textContent = block;
+            entryDraftPreviewBody.appendChild(paragraph);
+        }
+        appendFigures(index);
+    });
+}
+
 function currentEntryPayload() {
     return {
         id: state.selectedEntryId,
@@ -187,12 +312,13 @@ function clearEntryEditor() {
     deleteEntry.disabled = true;
     viewEntry.hidden = true;
     setEntryStatus("");
+    renderFiguresPanel();
     entryTitle.focus();
 }
 
 function selectEntry(entry) {
     state.selectedEntryId = entry.id;
-    state.selectedFigures = Array.isArray(entry.figures) ? entry.figures : [];
+    state.selectedFigures = Array.isArray(entry.figures) ? entry.figures.map((figure) => ({ ...figure })) : [];
     entryType.value = entry.type || "dispatch";
     entryTitle.value = entry.title || "";
     entryKicker.value = entry.kicker || "";
@@ -204,7 +330,13 @@ function selectEntry(entry) {
     deleteEntry.disabled = false;
     viewEntry.hidden = entry.status !== "published";
     viewEntry.href = liveUrlForEntry(entry);
-    setEntryStatus(`${typeLabel(entry.type)} · ${entry.status === "published" ? "Published" : "Draft"} loaded.`);
+    const figureCount = state.selectedFigures.length;
+    setEntryStatus(
+        `${typeLabel(entry.type)} · ${entry.status === "published" ? "Published" : "Draft"} loaded`
+        + (figureCount ? ` · ${figureCount} inline image${figureCount === 1 ? "" : "s"}` : "")
+        + "."
+    );
+    renderFiguresPanel();
 }
 
 function formatEntryDate(value) {
@@ -235,7 +367,9 @@ function renderEntryList(container, entries, emptyText) {
         const title = document.createElement("strong");
         title.textContent = entry.title;
         const meta = document.createElement("span");
-        meta.textContent = `${typeLabel(entry.type)} · /${entry.slug || "draft"}/ · ${entry.status === "published" ? formatEntryDate(entry.publishedAt) : `updated ${formatEntryDate(entry.updatedAt)}`}`;
+        const figureCount = Array.isArray(entry.figures) ? entry.figures.length : 0;
+        const figureNote = figureCount ? ` · ${figureCount} img` : "";
+        meta.textContent = `${typeLabel(entry.type)} · /${entry.slug || "draft"}/${figureNote} · ${entry.status === "published" ? formatEntryDate(entry.publishedAt) : `updated ${formatEntryDate(entry.updatedAt)}`}`;
         button.append(title, meta);
         button.addEventListener("click", () => selectEntry(entry));
         container.appendChild(button);
@@ -413,6 +547,10 @@ clearChat.addEventListener("click", () => {
     state.messages = [];
     messagesEl.innerHTML = "";
     addMessage("assistant", "Fresh page. What change should we shape next?");
+});
+
+entryContent.addEventListener("input", () => {
+    if (state.selectedFigures.length) renderFiguresPanel();
 });
 
 newEntry.addEventListener("click", clearEntryEditor);

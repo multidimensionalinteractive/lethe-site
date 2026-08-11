@@ -6,7 +6,7 @@
     <title>LETHE Dashboard</title>
     <link rel="icon" type="image/jpeg" href="../assets/favicon-lethe.jpg">
     <link rel="apple-touch-icon" href="../assets/favicon-lethe.jpg">
-    <link rel="stylesheet" href="dashboard.css?v=posts-editor-20260811">
+    <link rel="stylesheet" href="dashboard.css?v=figures-preview-20260811">
 </head>
 <body>
     <main class="dashboard-shell">
@@ -87,7 +87,18 @@
                     <textarea id="entry-deck" rows="2" placeholder="Deck / short intro under the title"></textarea>
                     <input id="entry-byline" type="text" placeholder="Byline (optional)">
                     <textarea id="entry-excerpt" rows="2" placeholder="Short excerpt for index cards"></textarea>
-                    <textarea id="entry-content" rows="12" placeholder="Post body. Use blank lines between paragraphs. Use ## for section headings. Figures from seeded posts are preserved on publish."></textarea>
+                    <textarea id="entry-content" rows="12" placeholder="Post body. Use blank lines between paragraphs. Use ## for section headings. Images live in Inline Figures below — not inside this text box."></textarea>
+                    <div class="entry-figures" id="entry-figures" hidden>
+                        <div class="entry-figures-header">
+                            <p class="eyebrow">INLINE FIGURES</p>
+                            <p class="entry-figures-note" id="entry-figures-note">Images are stored separately from the text and stay attached on Save / Publish.</p>
+                        </div>
+                        <div class="entry-figures-grid" id="entry-figures-grid"></div>
+                    </div>
+                    <div class="entry-draft-preview" id="entry-draft-preview" hidden>
+                        <p class="eyebrow">DRAFT PREVIEW</p>
+                        <div class="entry-draft-preview-body" id="entry-draft-preview-body"></div>
+                    </div>
                     <div class="entry-actions">
                         <button id="save-entry-draft" type="button">Save Draft</button>
                         <button id="publish-entry" type="button">Publish</button>
@@ -182,6 +193,6 @@
         </section>
     </main>
 
-    <script src="dashboard.js?v=posts-editor-20260811"></script>
+    <script src="dashboard.js?v=figures-preview-20260811"></script>
 </body>
 </html>
