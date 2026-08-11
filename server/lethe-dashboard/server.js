@@ -507,7 +507,7 @@ async function seedKnownPosts(existing) {
         if (error.code !== "ENOENT") throw error;
     }
 
-    const interviewPath = path.join(WORKTREE, "v3", "interview", "index.html");
+    const interviewPath = path.join(WORKTREE, "interview", "index.html");
     try {
         const html = await fs.readFile(interviewPath, "utf8");
         const seeded = extractSeedFromInterviewHtml(html, {
@@ -515,8 +515,8 @@ async function seedKnownPosts(existing) {
             type: "interview",
             slug: "interview",
             status: "published",
-            livePath: "v3/interview/index.html",
-            publishedAt: "2026-08-02T00:00:00.000Z"
+            livePath: "interview/index.html",
+            publishedAt: "2026-08-09T00:00:00.000Z"
         });
         seeds.push(normalizeEntry(seeded, byId.get(seeded.id) || {}));
     } catch (error) {
@@ -530,12 +530,16 @@ async function seedKnownPosts(existing) {
         if (index === -1) {
             merged.push(seed);
             changed = true;
-        } else if (!merged[index].content && seed.content) {
+        } else if (
+            !merged[index].content
+            || merged[index].livePath !== seed.livePath
+            || (seed.type === "interview" && !String(merged[index].title || "").includes("Ricochet") && seed.title.includes("Ricochet"))
+        ) {
             merged[index] = {
-                ...seed,
                 ...merged[index],
-                content: merged[index].content || seed.content,
-                figures: merged[index].figures?.length ? merged[index].figures : seed.figures
+                ...seed,
+                id: merged[index].id || seed.id,
+                createdAt: merged[index].createdAt || seed.createdAt
             };
             changed = true;
         }
@@ -617,7 +621,7 @@ async function writeSiteFiles(entries, pathsToStage, commitMessage) {
         await fs.writeFile(filePath, content, "utf8");
     }
 
-    const stagePaths = pathsToStage?.length ? pathsToStage : ["dispatches", "field-observations", "v3/interview"];
+    const stagePaths = pathsToStage?.length ? pathsToStage : ["dispatches", "field-observations", "interview"];
     await runGit(["add", "-A", ...stagePaths], { cwd: WORKTREE });
     const status = await runGit(["status", "--porcelain", "--", ...stagePaths], { cwd: WORKTREE });
     if (!status.stdout.trim()) {
@@ -638,7 +642,7 @@ async function publishEntry(payload) {
     const saved = await saveEntry(payload, "published");
     const entry = saved.entry;
     const stagePaths = entry.type === "interview"
-        ? [path.dirname(entry.livePath || "v3/interview/index.html")]
+        ? ["interview"]
         : entry.type === "field-observation"
             ? ["field-observations"]
             : ["dispatches"];

@@ -148,7 +148,7 @@ function liveUrlForEntry(entry) {
         return `https://youarestillinsideit.com/${entry.livePath.replace(/index\.html$/, "")}`;
     }
     if (entry.type === "field-observation") return `https://youarestillinsideit.com/field-observations/${entry.slug}/`;
-    if (entry.type === "interview") return `https://youarestillinsideit.com/v3/interview/`;
+    if (entry.type === "interview") return `https://youarestillinsideit.com/interview/`;
     return `https://youarestillinsideit.com/dispatches/${entry.slug}/`;
 }
 

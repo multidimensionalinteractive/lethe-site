@@ -374,46 +374,54 @@ ${renderHead({
 }
 
 function renderInterviewEntry(entry) {
-    const kicker = entry.kicker || "interview";
+    const kicker = entry.kicker || "conversation / interview";
     const deck = entry.deck || entry.excerpt || plainSummary(entry.content);
     const description = deck.slice(0, 220);
+    const imagePath = firstFigureImage(entry);
 
     return `<!DOCTYPE html>
 <html lang="en">
 ${renderHead({
     title: `${entry.title} | ${SITE_TITLE}`,
     description,
-    canonical: entry.livePath?.includes("v3/")
-        ? `https://youarestillinsideit.com/v3/interview/`
-        : `https://youarestillinsideit.com/field-observations/${entry.slug}/`,
-    prefix: entry.livePath?.startsWith("v3/") ? "../../" : "../../",
+    canonical: "https://youarestillinsideit.com/interview/",
+    prefix: "../",
     type: "article",
-    stylesheet: entry.livePath?.startsWith("v3/") ? "styles.css" : "styles-v1.css",
-    imagePath: "assets/viktor.jpg"
+    stylesheet: "styles-v1.css",
+    imagePath
 })}
-<body>
-    ${renderNav(entry.livePath?.startsWith("v3/") ? "../" : "../../")}
+<body class="observations-page observation-entry-page">
+    ${renderNav("../")}
 
-    <header class="interview-hero entry-hero">
+    <header class="entry-hero">
         <div>
             <p class="kicker">${escapeHtml(kicker)}</p>
             <h1>${escapeHtml(entry.title)}</h1>
-            <p class="interview-deck entry-deck">${escapeHtml(deck)}</p>
-            <p class="interview-meta entry-byline">${escapeHtml(entry.byline || "LETHE — ALEXANDRIA CHANEL — 2026")}</p>
+            <p class="entry-deck">${escapeHtml(deck)}</p>
+            <p class="entry-byline">${escapeHtml(entry.byline || "LETHE — ALEXANDRIA CHANEL — 2026")}</p>
         </div>
     </header>
 
-    <main class="interview-layout entry-layout">
-        <article class="interview-prose entry-prose">
-            ${renderRichText(entry.content)}
+    <main class="entry-layout">
+        <aside class="entry-meta" aria-label="Entry metadata">
+            <span>Interview</span>
+            <p>Conversation</p>
+            <p>${escapeHtml(kicker)}</p>
+            <p>Edited from the LETHE dashboard.</p>
+        </aside>
+
+        <article class="entry-prose">
+            ${renderProseWithFigures(entry.content, entry.figures)}
         </article>
     </main>
 
     <footer class="site-footer">
         <span>${SITE_TITLE}</span>
         <span>${escapeHtml(entry.title)}</span>
-        <strong>2026</strong>
+        <strong>THE FRONT NEVER ENDED.</strong>
     </footer>
+
+    <script src="../script-v1.js?v=dashboard-entries-20260811"></script>
 </body>
 </html>`;
 }
@@ -511,21 +519,40 @@ function extractSeedFromFieldObservationHtml(html, meta) {
 function extractSeedFromInterviewHtml(html, meta) {
     const kickerMatch = html.match(/<p class="kicker">([\s\S]*?)<\/p>/i);
     const titleMatch = html.match(/<h1>([\s\S]*?)<\/h1>/i);
-    const deckMatch = html.match(/<p class="interview-deck">([\s\S]*?)<\/p>/i);
-    const bylineMatch = html.match(/<p class="interview-meta">([\s\S]*?)<\/p>/i);
-    const articleMatch = html.match(/<article class="interview-prose">([\s\S]*?)<\/article>/i);
+    const deckMatch = html.match(/<p class="(?:interview-deck|entry-deck)">([\s\S]*?)<\/p>/i);
+    const bylineMatch = html.match(/<p class="(?:interview-meta|entry-byline)">([\s\S]*?)<\/p>/i);
+    const articleMatch = html.match(/<article class="(?:interview-prose|entry-prose)">([\s\S]*?)<\/article>/i);
     const article = articleMatch ? articleMatch[1] : "";
 
+    const figures = [];
     const blocks = [];
-    const tokenRe = /<(h2|p)(\s[^>]*)?>([\s\S]*?)<\/\1>/gi;
+    const tokenRe = /<(h2|p|figure)(\s[^>]*)?>([\s\S]*?)<\/\1>/gi;
     let match;
+    let paragraphIndex = -1;
     while ((match = tokenRe.exec(article)) !== null) {
         if (match[0].includes("interview-signoff") || match[0].includes("section-actions")) continue;
-        if (match[1].toLowerCase() === "h2") {
+        const tag = match[1].toLowerCase();
+        if (tag === "figure") {
+            const srcMatch = match[0].match(/src="([^"]+)"/i);
+            const altMatch = match[0].match(/alt="([^"]*)"/i);
+            const captionMatch = match[0].match(/<figcaption>([\s\S]*?)<\/figcaption>/i);
+            figures.push({
+                src: srcMatch ? srcMatch[1] : "",
+                alt: altMatch ? decodeEntities(altMatch[1]) : "",
+                caption: captionMatch ? htmlToPlainBlock(captionMatch[1]) : "",
+                afterIndex: paragraphIndex
+            });
+            continue;
+        }
+        if (tag === "h2") {
             blocks.push(`## ${htmlToPlainBlock(match[3])}`);
-        } else {
-            const text = htmlToPlainBlock(match[3]);
-            if (text) blocks.push(text);
+            paragraphIndex = blocks.length - 1;
+            continue;
+        }
+        const text = htmlToPlainBlock(match[3]);
+        if (text) {
+            blocks.push(text);
+            paragraphIndex = blocks.length - 1;
         }
     }
 
@@ -537,7 +564,7 @@ function extractSeedFromInterviewHtml(html, meta) {
         byline: htmlToPlainBlock(bylineMatch?.[1] || meta.byline || ""),
         content: blocks.join("\n\n"),
         excerpt: htmlToPlainBlock(deckMatch?.[1] || meta.excerpt || "").slice(0, 220),
-        figures: []
+        figures
     };
 }
 
