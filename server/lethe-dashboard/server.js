@@ -548,9 +548,15 @@ async function seedKnownPosts(existing) {
 async function readEntries() {
     const existing = await readEntriesRaw();
     try {
-        await ensureWorktree();
+        try {
+            await ensureWorktree();
+        } catch (error) {
+            // Worktree may already be present; continue seeding from disk.
+            console.error("ensureWorktree during seed:", error.message || error);
+        }
         return await seedKnownPosts(existing);
-    } catch {
+    } catch (error) {
+        console.error("seedKnownPosts:", error.message || error);
         return existing;
     }
 }
