@@ -1204,20 +1204,29 @@ figcaption {
         padding-inline: clamp(0.75rem, 2vw, 1.4rem);
         font-size: 0.66rem;
         letter-spacing: 0.12em;
+        flex-wrap: wrap;
+        row-gap: 0.45rem;
     }
 
     .nav-mark {
         gap: 0.5rem;
+        flex: 1 1 auto;
+        min-width: 0;
+        white-space: normal;
     }
 
     .nav-mark span {
-        max-width: 23ch;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        max-width: none;
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
+        line-height: 1.25;
     }
 
     .nav-links {
         gap: clamp(0.5rem, 1.25vw, 0.95rem);
+        flex-wrap: wrap;
+        white-space: normal;
     }
 }
 
@@ -1228,7 +1237,7 @@ figcaption {
     }
 
     .nav-mark span {
-        max-width: 19ch;
+        max-width: none;
     }
 }
 
