@@ -1,39 +1,17 @@
 (function () {
     const API_BASE = "https://mdi.io/lethe-dashboard";
-    const DISMISS_KEY = "letheNewsletterDismissedUntil";
-    const DISMISS_DAYS = 30;
-
-    const strip = document.getElementById("newsletter-strip");
-    if (!strip) return;
-
-    const form = strip.querySelector("[data-newsletter-form]");
-    const statusEl = strip.querySelector("[data-newsletter-status]");
-    const turnstileMount = strip.querySelector("[data-turnstile]");
-    const closeButton = strip.querySelector("[data-newsletter-close]");
+    const form = document.getElementById("newsletter-page-form");
+    const statusEl = document.getElementById("newsletter-page-status");
+    const turnstileMount = document.querySelector("[data-turnstile]");
     let turnstileSiteKey = "";
     let turnstileWidgetId = null;
+
+    if (!form) return;
 
     function setStatus(message, type) {
         if (!statusEl) return;
         statusEl.textContent = message;
-        statusEl.className = "newsletter-strip-status" + (type ? ` ${type}` : "");
-    }
-
-    function isDismissed() {
-        const until = Number(localStorage.getItem(DISMISS_KEY) || "0");
-        return until > Date.now();
-    }
-
-    function dismissStrip() {
-        localStorage.setItem(DISMISS_KEY, String(Date.now() + DISMISS_DAYS * 24 * 60 * 60 * 1000));
-        strip.hidden = true;
-        document.documentElement.style.setProperty("--newsletter-strip-height", "0px");
-    }
-
-    function showStrip() {
-        strip.hidden = false;
-        const height = strip.offsetHeight;
-        document.documentElement.style.setProperty("--newsletter-strip-height", `${height}px`);
+        statusEl.className = "newsletter-page-status" + (type ? ` ${type}` : "");
     }
 
     function mountTurnstile() {
@@ -45,44 +23,33 @@
         turnstileWidgetId = window.turnstile.render(turnstileMount, {
             sitekey: turnstileSiteKey,
             theme: "dark",
-            size: "compact",
-            callback: () => showStrip(),
-            "expired-callback": () => showStrip()
+            size: "normal",
+            callback: () => {},
+            "expired-callback": () => {}
         });
-        showStrip();
     }
 
     async function init() {
-        if (isDismissed()) {
-            strip.hidden = true;
-            return;
-        }
-
         try {
             const response = await fetch(`${API_BASE}/api/newsletter/config`);
             const data = await response.json();
             if (!data.enabled) {
-                strip.hidden = true;
+                setStatus("Subscriptions are not available at the moment.", "error");
+                form.querySelector("button[type='submit']").disabled = true;
                 return;
             }
             turnstileSiteKey = data.turnstileSiteKey || "";
-            const kicker = strip.querySelector("[data-newsletter-kicker]");
-            const copy = strip.querySelector("[data-newsletter-copy]");
-            if (kicker && data.kicker) kicker.textContent = data.kicker;
-            if (copy && data.copy) copy.textContent = data.copy;
-            showStrip();
             if (turnstileSiteKey) {
                 if (window.turnstile) mountTurnstile();
                 else window.addEventListener("load", mountTurnstile, { once: true });
             }
         } catch {
-            strip.hidden = true;
+            setStatus("Could not load the subscription form.", "error");
         }
     }
 
     async function submitForm(event) {
         event.preventDefault();
-        if (!form) return;
         const submitButton = form.querySelector('button[type="submit"]');
         const formData = new FormData(form);
         const payload = {
@@ -107,7 +74,7 @@
             if (!response.ok) throw new Error(data.error || "Could not subscribe.");
             form.reset();
             mountTurnstile();
-            setStatus(data.message || "Check your email to confirm.", "success");
+            setStatus(data.message || "Check your email to confirm your subscription.", "success");
         } catch (error) {
             setStatus(error.message || "Could not subscribe.", "error");
             mountTurnstile();
@@ -116,10 +83,6 @@
         }
     }
 
-    closeButton?.addEventListener("click", dismissStrip);
-    form?.addEventListener("submit", submitForm);
-    window.addEventListener("resize", () => {
-        if (!strip.hidden) showStrip();
-    });
+    form.addEventListener("submit", submitForm);
     init();
 })();

@@ -18,7 +18,7 @@
     <meta name="twitter:image" content="https://youarestillinsideit.com/assets/worth-it.jpg">
     <link rel="icon" type="image/jpeg" href="assets/favicon-lethe.jpg">
     <link rel="apple-touch-icon" href="assets/favicon-lethe.jpg">
-    <link rel="stylesheet" href="styles.css?v=newsletter-20260828">
+    <link rel="stylesheet" href="styles.css?v=newsletter-strip-20260828">
 </head>
 <body>
 
@@ -32,7 +32,7 @@
                 <label class="visually-hidden" for="newsletter-email">Email</label>
                 <input id="newsletter-email" type="email" name="email" required autocomplete="email" placeholder="Email address">
                 <label class="visually-hidden" for="newsletter-name">Name</label>
-                <input id="newsletter-name" type="text" name="name" maxlength="80" autocomplete="name" placeholder="Name (optional)">
+                <input id="newsletter-name" class="newsletter-strip-name" type="text" name="name" maxlength="80" autocomplete="name" placeholder="Name (optional)">
                 <label class="newsletter-strip-honeypot" aria-hidden="true">
                     <span>Website</span>
                     <input type="text" name="website" tabindex="-1" autocomplete="off">
@@ -45,7 +45,7 @@
         </div>
     </aside>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    <script src="newsletter-signup.js?v=newsletter-20260828"></script>
+    <script src="newsletter-signup.js?v=newsletter-strip-20260828"></script>
 
     <div class="site-bg" aria-hidden="true">
         <img class="site-bg-img" src="assets/site-field-bg.jpg?v=3" alt="">
@@ -363,6 +363,7 @@
                     <h2>CORRESPONDENCE</h2>
                     <div class="prose">
                         <p>For exhibitions, residencies, publications, studio visits, archival exchange, and serious conversation concerning the work.</p>
+                        <p><a href="newsletter/">Subscribe to field correspondence</a> — weekly notes from the archive.</p>
                     </div>
                     <a class="email-line" href="mailto:feldpost@youarestillinsideit.com">FELDPOST@YOUARESTILLINSIDEIT.COM</a>
                     <a class="instagram-line" href="https://www.instagram.com/__stalingrad_/" target="_blank" rel="noopener noreferrer">@__STALINGRAD_</a>
