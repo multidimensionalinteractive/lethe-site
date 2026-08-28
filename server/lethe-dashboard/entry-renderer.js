@@ -319,6 +319,46 @@ function firstFigureImage(entry) {
         .replace(/\?.*$/, "");
 }
 
+function renderFieldCommentsSection(entry) {
+    const postId = String(entry.id || `field-obs-${entry.slug || slugify(entry.title)}`);
+    const postSlug = entry.slug || slugify(entry.title);
+    const postTitle = entry.title || "Field Observation";
+    const postUrl = `https://youarestillinsideit.com/field-observations/${postSlug}/`;
+
+    return `
+    <section class="field-comments" data-post-id="${escapeHtml(postId)}" data-post-slug="${escapeHtml(postSlug)}" data-post-title="${escapeHtml(postTitle)}" data-post-url="${escapeHtml(postUrl)}" aria-label="Field notes responses">
+        <div class="field-comments-inner">
+            <p class="kicker">field notes / responses</p>
+            <h2 class="field-comments-title">RESPONSES</h2>
+            <p class="field-comments-intro">Leave a note after reading. Comments appear once reviewed.</p>
+            <div class="field-comments-list" data-comment-list aria-live="polite"></div>
+            <form class="field-comments-form" data-comment-form novalidate>
+                <label>
+                    <span>Name</span>
+                    <input type="text" name="authorName" maxlength="80" autocomplete="name" placeholder="Your name or pseudonym">
+                </label>
+                <label>
+                    <span>Email</span>
+                    <input type="email" name="authorEmail" maxlength="160" required autocomplete="email" placeholder="you@example.com">
+                </label>
+                <label>
+                    <span>Response</span>
+                    <textarea name="body" rows="5" maxlength="4000" required placeholder="Your note"></textarea>
+                </label>
+                <label class="field-comments-honeypot" aria-hidden="true">
+                    <span>Website</span>
+                    <input type="text" name="website" tabindex="-1" autocomplete="off">
+                </label>
+                <div class="field-comments-turnstile" data-turnstile></div>
+                <button type="submit">Send note</button>
+                <p class="field-comments-status" data-comment-status></p>
+            </form>
+        </div>
+    </section>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="../../field-comments.js?v=field-comments-20260827"></script>`;
+}
+
 function renderFieldObservationEntry(entry) {
     const kicker = entry.kicker || "FIELD OBSERVATIONS";
     const deck = entry.deck || entry.excerpt || plainSummary(entry.content);
@@ -361,6 +401,8 @@ ${renderHead({
             ${renderProseWithFigures(entry.content, entry.figures)}
         </article>
     </main>
+
+    ${renderFieldCommentsSection(entry)}
 
     <footer class="site-footer">
         <span>${SITE_TITLE}</span>
@@ -574,5 +616,6 @@ module.exports = {
     renderFieldObservationFiles,
     extractSeedFromFieldObservationHtml,
     extractSeedFromInterviewHtml,
+    renderFieldCommentsSection,
     slugify
 };

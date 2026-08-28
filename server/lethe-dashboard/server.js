@@ -17,8 +17,17 @@ const {
     renderDispatchFiles,
     renderFieldObservationFiles,
     extractSeedFromFieldObservationHtml,
-    extractSeedFromInterviewHtml
+    extractSeedFromInterviewHtml,
+    renderFieldCommentsSection
 } = require("./entry-renderer");
+const {
+    getConfig,
+    listApprovedComments,
+    listModerationComments,
+    getModerationSummary,
+    submitComment,
+    moderateComment
+} = require("./comments");
 
 const PORT = Number(process.env.PORT || 8787);
 const ACCESS_CODE = String(process.env.LETHE_DASHBOARD_ACCESS || "").trim();
@@ -94,11 +103,70 @@ function sendJson(response, status, payload, origin) {
     response.writeHead(status, {
         "Content-Type": "application/json; charset=utf-8",
         "Access-Control-Allow-Origin": origin || "https://youarestillinsideit.com",
-    "Access-Control-Allow-Headers": "Content-Type, X-Lethe-Access",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, X-Lethe-Access",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Vary": "Origin"
     });
     response.end(JSON.stringify(payload));
+}
+
+function clientIp(request) {
+    const forwarded = String(request.headers["x-forwarded-for"] || "").split(",")[0].trim();
+    return forwarded || request.socket.remoteAddress || "";
+}
+
+function parseRequestUrl(request) {
+    return new URL(request.url || "/", "http://localhost");
+}
+
+async function handlePublicComments(request, response, allowedOrigin) {
+    const url = parseRequestUrl(request);
+
+    if (url.pathname === "/api/comments/config" && request.method === "GET") {
+        return sendJson(response, 200, getConfig(), allowedOrigin);
+    }
+
+    if (url.pathname === "/api/comments" && request.method === "GET") {
+        const postId = String(url.searchParams.get("postId") || "").trim();
+        if (!postId) {
+            return sendJson(response, 400, { error: "postId is required." }, allowedOrigin);
+        }
+        const comments = await listApprovedComments(postId);
+        return sendJson(response, 200, { comments }, allowedOrigin);
+    }
+
+    if (url.pathname === "/api/comments" && request.method === "POST") {
+        const body = await readBody(request);
+        const payload = JSON.parse(body || "{}");
+        const result = await submitComment(payload, {
+            ip: clientIp(request),
+            userAgent: request.headers["user-agent"] || ""
+        });
+        return sendJson(response, 201, result, allowedOrigin);
+    }
+
+    return null;
+}
+
+async function handleProtectedComments(request, response, allowedOrigin) {
+    const url = parseRequestUrl(request);
+
+    if (url.pathname === "/api/comments/summary" && request.method === "GET") {
+        return sendJson(response, 200, await getModerationSummary(), allowedOrigin);
+    }
+
+    if (url.pathname === "/api/comments/moderation" && request.method === "GET") {
+        return sendJson(response, 200, { comments: await listModerationComments() }, allowedOrigin);
+    }
+
+    if (url.pathname === "/api/comments/moderate" && request.method === "POST") {
+        const body = await readBody(request);
+        const payload = JSON.parse(body || "{}");
+        const result = await moderateComment(payload);
+        return sendJson(response, 200, result, allowedOrigin);
+    }
+
+    return null;
 }
 
 function readBody(request) {
@@ -959,25 +1027,28 @@ const server = http.createServer(async (request, response) => {
     }
 
     try {
+        const publicComments = await handlePublicComments(request, response, allowedOrigin);
+        if (publicComments !== null) return publicComments;
+    } catch (error) {
+        const status = error.statusCode || 500;
+        return sendJson(response, status, { error: error.message || "Could not process comment." }, allowedOrigin);
+    }
+
+    try {
         assertAccess(request);
     } catch (error) {
         return sendJson(response, error.statusCode || 401, { error: error.message || "Access code required." }, allowedOrigin);
     }
 
     try {
+        const protectedComments = await handleProtectedComments(request, response, allowedOrigin);
+        if (protectedComments !== null) return protectedComments;
+
         if (request.url === "/api/entries" && request.method === "GET") {
             return sendJson(response, 200, { entries: listEntries(await readEntries()) }, allowedOrigin);
         }
 
-        if (![
-            "/api/chat",
-            "/api/push-live",
-            "/api/propose",
-            "/api/push-proposal",
-            "/api/entries/save",
-            "/api/entries/publish",
-            "/api/entries/delete"
-        ].includes(request.url) || request.method !== "POST") {
+        if (request.method !== "POST") {
             return sendJson(response, 404, { error: "Not found." }, allowedOrigin);
         }
 

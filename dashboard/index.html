@@ -6,7 +6,7 @@
     <title>LETHE Dashboard</title>
     <link rel="icon" type="image/jpeg" href="../assets/favicon-lethe.jpg">
     <link rel="apple-touch-icon" href="../assets/favicon-lethe.jpg">
-    <link rel="stylesheet" href="dashboard.css?v=figures-preview-20260811">
+    <link rel="stylesheet" href="dashboard.css?v=field-comments-20260827">
 </head>
 <body>
     <main class="dashboard-shell">
@@ -120,6 +120,19 @@
                 </div>
             </section>
 
+            <section class="comments-panel" id="comments-panel" aria-label="Field notes comment moderation" hidden>
+                <div class="comments-header">
+                    <div>
+                        <p class="eyebrow">FIELD NOTES</p>
+                        <h3>Comment moderation <span class="comments-pending-badge" id="comments-pending-badge" hidden></span></h3>
+                    </div>
+                    <button class="ghost-button compact-button" id="refresh-comments" type="button">Refresh</button>
+                </div>
+                <p class="comments-copy">Visitor responses on Field Observation posts stay hidden until approved here. Notification emails go to feldpost@youarestillinsideit.com and matthaydon@gmail.com.</p>
+                <p class="push-status" id="comments-status"></p>
+                <div class="comments-list" id="comments-list"></div>
+            </section>
+
             <section class="proposal-panel" id="proposal-panel" aria-label="Generated site preview" hidden>
                 <div class="proposal-header">
                     <div>
@@ -193,6 +206,6 @@
         </section>
     </main>
 
-    <script src="dashboard.js?v=figures-preview-20260811"></script>
+    <script src="dashboard.js?v=field-comments-20260827"></script>
 </body>
 </html>

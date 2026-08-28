@@ -1,0 +1,13 @@
+{
+  "name": "lethe-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "description": "LETHE dashboard API for site edits, entries, visits, and field notes comments.",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "optionalDependencies": {
+    "nodemailer": "^6.10.1"
+  }
+}

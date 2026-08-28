@@ -30,6 +30,11 @@ const mapDetailTitle = document.getElementById("map-detail-title");
 const mapDetailBody = document.getElementById("map-detail-body");
 const mapDetailClose = document.getElementById("map-detail-close");
 const entriesPanel = document.getElementById("entries-panel");
+const commentsPanel = document.getElementById("comments-panel");
+const commentsList = document.getElementById("comments-list");
+const commentsStatus = document.getElementById("comments-status");
+const commentsPendingBadge = document.getElementById("comments-pending-badge");
+const refreshComments = document.getElementById("refresh-comments");
 const newEntry = document.getElementById("new-entry");
 const entryType = document.getElementById("entry-type");
 const entryTitle = document.getElementById("entry-title");
@@ -104,6 +109,7 @@ function setDashboardUnlocked(isUnlocked) {
     composer.hidden = !isUnlocked;
     proposalPanel.hidden = !isUnlocked;
     entriesPanel.hidden = !isUnlocked;
+    commentsPanel.hidden = !isUnlocked;
     uploadPreview.hidden = !isUnlocked || !state.uploadedImage;
 }
 
@@ -406,6 +412,149 @@ async function entriesRequest(path, payload = null) {
     return data;
 }
 
+function setCommentsStatus(text, type = "") {
+    commentsStatus.textContent = text;
+    commentsStatus.className = `push-status ${type}`.trim();
+}
+
+function formatCommentDate(value) {
+    if (!value) return "unknown date";
+    try {
+        return new Intl.DateTimeFormat(undefined, {
+            dateStyle: "medium",
+            timeStyle: "short"
+        }).format(new Date(value));
+    } catch {
+        return value;
+    }
+}
+
+function renderCommentsModeration(comments, summary) {
+    commentsList.innerHTML = "";
+    const pendingCount = summary?.pendingCount || 0;
+    if (pendingCount > 0) {
+        commentsPendingBadge.hidden = false;
+        commentsPendingBadge.textContent = `${pendingCount} pending`;
+    } else {
+        commentsPendingBadge.hidden = true;
+        commentsPendingBadge.textContent = "";
+    }
+
+    const pending = (comments || []).filter((comment) => comment.status === "pending");
+    const others = (comments || []).filter((comment) => comment.status !== "pending").slice(0, 8);
+    const visible = [...pending, ...others];
+
+    if (!visible.length) {
+        const empty = document.createElement("p");
+        empty.className = "comments-empty";
+        empty.textContent = "No comments yet.";
+        commentsList.appendChild(empty);
+        return;
+    }
+
+    visible.forEach((comment) => {
+        const card = document.createElement("article");
+        card.className = `comment-card comment-${comment.status}`;
+
+        const title = document.createElement("strong");
+        title.textContent = comment.postTitle || comment.postSlug;
+
+        const meta = document.createElement("span");
+        meta.className = "comment-card-meta";
+        meta.textContent = `${comment.authorName} · ${comment.authorEmail} · ${comment.status} · ${formatCommentDate(comment.createdAt)}`;
+
+        const body = document.createElement("p");
+        body.className = "comment-card-body";
+        body.textContent = comment.body;
+
+        const actions = document.createElement("div");
+        actions.className = "comment-card-actions";
+
+        if (comment.status === "pending") {
+            actions.append(
+                createCommentActionButton("Approve", "approve", comment.id),
+                createCommentActionButton("Reject", "reject", comment.id),
+                createCommentActionButton("Spam", "spam", comment.id)
+            );
+        } else {
+            actions.append(createCommentActionButton("Delete", "delete", comment.id));
+        }
+
+        if (comment.postUrl) {
+            const link = document.createElement("a");
+            link.className = "ghost-button compact-button";
+            link.href = comment.postUrl;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = "View post";
+            actions.appendChild(link);
+        }
+
+        card.append(title, meta, body, actions);
+        commentsList.appendChild(card);
+    });
+}
+
+function createCommentActionButton(label, action, id) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = action === "approve" ? "" : "ghost-button";
+    button.textContent = label;
+    button.addEventListener("click", () => moderateComment(id, action));
+    return button;
+}
+
+async function commentsRequest(path, payload = null) {
+    const options = {
+        headers: { "X-Lethe-Access": state.accessCode }
+    };
+    if (payload) {
+        options.method = "POST";
+        options.headers["Content-Type"] = "application/json";
+        options.body = JSON.stringify(payload);
+    }
+    const response = await fetch(`${API_BASE}${path}`, options);
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        throw new Error(data.error || "Comment request failed.");
+    }
+    return data;
+}
+
+async function loadCommentsModeration() {
+    if (!state.accessCode) return;
+    setCommentsStatus("Loading comments…");
+    try {
+        const [summary, moderation] = await Promise.all([
+            commentsRequest("/api/comments/summary"),
+            commentsRequest("/api/comments/moderation")
+        ]);
+        renderCommentsModeration(moderation.comments, summary);
+        if (summary.pendingCount > 0) {
+            setCommentsStatus(`${summary.pendingCount} comment${summary.pendingCount === 1 ? "" : "s"} waiting for review.`, "success");
+        } else {
+            setCommentsStatus("No pending comments.", "success");
+        }
+    } catch (error) {
+        setCommentsStatus(error.message, "error");
+    }
+}
+
+async function moderateComment(id, action) {
+    setCommentsStatus(`${action === "approve" ? "Approving" : "Updating"} comment…`);
+    try {
+        const data = await commentsRequest("/api/comments/moderate", { id, action });
+        renderCommentsModeration(data.comments, data.summary);
+        const pending = data.summary?.pendingCount || 0;
+        setCommentsStatus(
+            pending > 0 ? `${pending} comment${pending === 1 ? "" : "s"} still pending.` : "Comment updated.",
+            "success"
+        );
+    } catch (error) {
+        setCommentsStatus(error.message, "error");
+    }
+}
+
 async function loadEntries() {
     if (!state.accessCode) return;
 
@@ -506,6 +655,7 @@ async function unlockDashboard(code, { silent = false } = {}) {
     setDashboardUnlocked(true);
     renderVisits(data);
     await loadEntries();
+    await loadCommentsModeration();
     if (!silent) promptEl.focus();
 }
 
@@ -950,6 +1100,7 @@ mapDetailClose.addEventListener("click", () => {
 });
 
 refreshVisits.addEventListener("click", loadVisits);
+refreshComments.addEventListener("click", loadCommentsModeration);
 
 if (state.accessCode) {
     accessCode.value = state.accessCode;
