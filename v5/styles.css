@@ -319,6 +319,49 @@ a {
     font-size: 1.15rem;
 }
 
+.context-note {
+    margin-top: clamp(2rem, 4vw, 3rem);
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--rust-dim);
+    background: var(--panel-soft);
+    box-shadow: var(--edge-hi);
+}
+
+.context-note h3 {
+    margin: 0 0 1rem;
+    color: var(--bone);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    letter-spacing: 0.12em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    text-shadow: none;
+}
+
+.context-note-body p {
+    margin: 0 0 1rem;
+    color: var(--text-soft);
+    font-family: var(--font-body);
+    font-size: 0.94rem;
+    line-height: 1.65;
+}
+
+.context-note-body p:last-child {
+    margin-bottom: 0;
+}
+
+.context-note-closing {
+    margin-top: 1.15rem;
+    color: var(--bone);
+    font-family: var(--font-struct);
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
 /* ---------- hero ---------- */
 .hero {
     position: relative;
