@@ -390,6 +390,23 @@ a {
     min-height: 100vh;
 }
 
+.newsletter-page .site-bg-img {
+    filter: brightness(0.78);
+}
+
+.newsletter-page .site-bg-veil {
+    background:
+        linear-gradient(180deg, rgba(8, 6, 5, 0.22) 0%, rgba(8, 6, 5, 0.48) 100%),
+        radial-gradient(ellipse at 50% 35%,
+            rgba(12, 10, 8, 0.42) 0%,
+            rgba(12, 10, 8, 0.62) 55%,
+            rgba(10, 8, 7, 0.78) 100%),
+        linear-gradient(180deg,
+            rgba(143, 42, 29, 0.06) 0%,
+            rgba(12, 10, 8, 0.34) 45%,
+            rgba(10, 8, 7, 0.54) 100%);
+}
+
 .newsletter-page .site-nav {
     position: fixed;
 }
@@ -418,7 +435,7 @@ a {
 
 .newsletter-landing-deck {
     margin: 0;
-    color: var(--bone-dim);
+    color: var(--bone);
     font-family: var(--font-body);
     font-size: 1.05rem;
     line-height: 1.6;
@@ -455,7 +472,7 @@ a {
 }
 
 .newsletter-landing-body .prose p {
-    color: var(--text-soft);
+    color: var(--text);
 }
 
 .newsletter-signup-panel {
@@ -479,7 +496,7 @@ a {
 
 .newsletter-signup-note {
     margin: 0 0 1.15rem;
-    color: var(--text-soft);
+    color: var(--text);
     font-family: var(--font-body);
     font-size: 0.9rem;
     line-height: 1.55;
@@ -565,7 +582,7 @@ a {
 }
 
 .newsletter-landing-closing a {
-    color: var(--bone-dim);
+    color: var(--bone);
 }
 
 .newsletter-page-footer {
