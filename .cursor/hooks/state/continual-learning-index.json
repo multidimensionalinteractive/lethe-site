@@ -2,24 +2,48 @@
   "version": 1,
   "transcripts": {
     "bff053b1-e1f1-4a44-982f-bbac9252858a": {
-      "mtimeMs": 1785822289000,
-      "indexedAtMs": 1785822478000
+      "mtimeMs": 1787939638749,
+      "indexedAtMs": 1787939764054
+    },
+    "bff053b1-e1f1-4a44-982f-bbac9252858a/subagents/0089b8b9-7e99-422e-ad08-24271427bfcc": {
+      "mtimeMs": 1787939654822,
+      "indexedAtMs": 1787939764054
+    },
+    "bff053b1-e1f1-4a44-982f-bbac9252858a/subagents/10a65755-5d0a-4807-8ef3-2d1a0cf55a94": {
+      "mtimeMs": 1786441340194,
+      "indexedAtMs": 1787939764054
+    },
+    "bff053b1-e1f1-4a44-982f-bbac9252858a/subagents/24f3f6cd-8dc2-4463-ac35-72ccf1486a35": {
+      "mtimeMs": 1785837997325,
+      "indexedAtMs": 1787939764054
+    },
+    "bff053b1-e1f1-4a44-982f-bbac9252858a/subagents/64cd7842-1e80-454c-b469-b1b1a9e54ee8": {
+      "mtimeMs": 1786141653199,
+      "indexedAtMs": 1787939764054
     },
     "bff053b1-e1f1-4a44-982f-bbac9252858a/subagents/8d09f6e1-1593-40d2-a61a-ea7ed63aeb79": {
-      "mtimeMs": 1785517760000,
-      "indexedAtMs": 1785822478000
+      "mtimeMs": 1785438560706,
+      "indexedAtMs": 1787939764054
+    },
+    "bff053b1-e1f1-4a44-982f-bbac9252858a/subagents/989e100b-5acb-4492-9acc-edfe3a7a7852": {
+      "mtimeMs": 1786445591653,
+      "indexedAtMs": 1787939764054
     },
     "bff053b1-e1f1-4a44-982f-bbac9252858a/subagents/999463a8-43ca-418c-af7b-439c764973af": {
-      "mtimeMs": 1785517946000,
-      "indexedAtMs": 1785822478000
+      "mtimeMs": 1785438746504,
+      "indexedAtMs": 1787939764054
     },
-    "bff053b1-e1f1-4a44-982f-bbac9252858a/subagents/ea18558b-ea37-4310-9e61-eae13c373e36": {
-      "mtimeMs": 1785515639000,
-      "indexedAtMs": 1785822478000
+    "bff053b1-e1f1-4a44-982f-bbac9252858a/subagents/bc9001a7-2042-4e3d-afc4-dadcca210a98": {
+      "mtimeMs": 1785831018915,
+      "indexedAtMs": 1787939764054
     },
     "bff053b1-e1f1-4a44-982f-bbac9252858a/subagents/bf07a252-22a0-472f-93ab-7058efe93e03": {
-      "mtimeMs": 1785822394000,
-      "indexedAtMs": 1785822478000
+      "mtimeMs": 1785822575080,
+      "indexedAtMs": 1787939764054
+    },
+    "bff053b1-e1f1-4a44-982f-bbac9252858a/subagents/ea18558b-ea37-4310-9e61-eae13c373e36": {
+      "mtimeMs": 1785436439468,
+      "indexedAtMs": 1787939764054
     }
   }
 }

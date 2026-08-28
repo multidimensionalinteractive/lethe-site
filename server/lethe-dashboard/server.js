@@ -28,6 +28,16 @@ const {
     submitComment,
     moderateComment
 } = require("./comments");
+const {
+    getPublicConfig: getNewsletterPublicConfig,
+    subscribe: subscribeNewsletter,
+    confirmSubscription,
+    unsubscribe: unsubscribeNewsletter,
+    getDashboardSummary: getNewsletterSummary,
+    listSubscribersForDashboard,
+    listIssuesForDashboard,
+    sendNewsletterIssue
+} = require("./newsletter");
 
 const PORT = Number(process.env.PORT || 8787);
 const ACCESS_CODE = String(process.env.LETHE_DASHBOARD_ACCESS || "").trim();
@@ -163,6 +173,65 @@ async function handleProtectedComments(request, response, allowedOrigin) {
         const body = await readBody(request);
         const payload = JSON.parse(body || "{}");
         const result = await moderateComment(payload);
+        return sendJson(response, 200, result, allowedOrigin);
+    }
+
+    return null;
+}
+
+async function handlePublicNewsletter(request, response, allowedOrigin) {
+    const url = parseRequestUrl(request);
+
+    if (url.pathname === "/api/newsletter/config" && request.method === "GET") {
+        return sendJson(response, 200, getNewsletterPublicConfig(), allowedOrigin);
+    }
+
+    if (url.pathname === "/api/newsletter/subscribe" && request.method === "POST") {
+        const body = await readBody(request);
+        const payload = JSON.parse(body || "{}");
+        const result = await subscribeNewsletter(payload, {
+            ip: clientIp(request),
+            userAgent: request.headers["user-agent"] || ""
+        });
+        return sendJson(response, 201, result, allowedOrigin);
+    }
+
+    if (url.pathname === "/api/newsletter/confirm" && request.method === "POST") {
+        const body = await readBody(request);
+        const payload = JSON.parse(body || "{}");
+        const result = await confirmSubscription(payload.token);
+        return sendJson(response, 200, result, allowedOrigin);
+    }
+
+    if (url.pathname === "/api/newsletter/unsubscribe" && request.method === "POST") {
+        const body = await readBody(request);
+        const payload = JSON.parse(body || "{}");
+        const result = await unsubscribeNewsletter(payload.token);
+        return sendJson(response, 200, result, allowedOrigin);
+    }
+
+    return null;
+}
+
+async function handleProtectedNewsletter(request, response, allowedOrigin) {
+    const url = parseRequestUrl(request);
+
+    if (url.pathname === "/api/newsletter/summary" && request.method === "GET") {
+        return sendJson(response, 200, await getNewsletterSummary(), allowedOrigin);
+    }
+
+    if (url.pathname === "/api/newsletter/subscribers" && request.method === "GET") {
+        return sendJson(response, 200, { subscribers: await listSubscribersForDashboard() }, allowedOrigin);
+    }
+
+    if (url.pathname === "/api/newsletter/issues" && request.method === "GET") {
+        return sendJson(response, 200, { issues: await listIssuesForDashboard() }, allowedOrigin);
+    }
+
+    if (url.pathname === "/api/newsletter/send" && request.method === "POST") {
+        const body = await readBody(request);
+        const payload = JSON.parse(body || "{}");
+        const result = await sendNewsletterIssue(payload);
         return sendJson(response, 200, result, allowedOrigin);
     }
 
@@ -1029,9 +1098,11 @@ const server = http.createServer(async (request, response) => {
     try {
         const publicComments = await handlePublicComments(request, response, allowedOrigin);
         if (publicComments !== null) return publicComments;
+        const publicNewsletter = await handlePublicNewsletter(request, response, allowedOrigin);
+        if (publicNewsletter !== null) return publicNewsletter;
     } catch (error) {
         const status = error.statusCode || 500;
-        return sendJson(response, status, { error: error.message || "Could not process comment." }, allowedOrigin);
+        return sendJson(response, status, { error: error.message || "Could not process request." }, allowedOrigin);
     }
 
     try {
@@ -1043,6 +1114,8 @@ const server = http.createServer(async (request, response) => {
     try {
         const protectedComments = await handleProtectedComments(request, response, allowedOrigin);
         if (protectedComments !== null) return protectedComments;
+        const protectedNewsletter = await handleProtectedNewsletter(request, response, allowedOrigin);
+        if (protectedNewsletter !== null) return protectedNewsletter;
 
         if (request.url === "/api/entries" && request.method === "GET") {
             return sendJson(response, 200, { entries: listEntries(await readEntries()) }, allowedOrigin);

@@ -18,9 +18,34 @@
     <meta name="twitter:image" content="https://youarestillinsideit.com/assets/worth-it.jpg">
     <link rel="icon" type="image/jpeg" href="assets/favicon-lethe.jpg">
     <link rel="apple-touch-icon" href="assets/favicon-lethe.jpg">
-    <link rel="stylesheet" href="styles.css?v=context-note-20260827">
+    <link rel="stylesheet" href="styles.css?v=newsletter-20260828">
 </head>
 <body>
+
+    <aside class="newsletter-strip" id="newsletter-strip" hidden aria-label="Newsletter signup">
+        <div class="newsletter-strip-inner">
+            <div class="newsletter-strip-copyblock">
+                <p class="newsletter-strip-kicker" data-newsletter-kicker>Field correspondence</p>
+                <p class="newsletter-strip-copy" data-newsletter-copy>Weekly notes from the archive — new work, field observations, and studio correspondence.</p>
+            </div>
+            <form class="newsletter-strip-form" data-newsletter-form novalidate>
+                <label class="visually-hidden" for="newsletter-email">Email</label>
+                <input id="newsletter-email" type="email" name="email" required autocomplete="email" placeholder="Email address">
+                <label class="visually-hidden" for="newsletter-name">Name</label>
+                <input id="newsletter-name" type="text" name="name" maxlength="80" autocomplete="name" placeholder="Name (optional)">
+                <label class="newsletter-strip-honeypot" aria-hidden="true">
+                    <span>Website</span>
+                    <input type="text" name="website" tabindex="-1" autocomplete="off">
+                </label>
+                <div class="newsletter-strip-turnstile" data-turnstile></div>
+                <button type="submit">Subscribe</button>
+                <p class="newsletter-strip-status" data-newsletter-status></p>
+            </form>
+            <button class="newsletter-strip-close" type="button" data-newsletter-close aria-label="Dismiss newsletter banner">×</button>
+        </div>
+    </aside>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="newsletter-signup.js?v=newsletter-20260828"></script>
 
     <div class="site-bg" aria-hidden="true">
         <img class="site-bg-img" src="assets/site-field-bg.jpg?v=3" alt="">

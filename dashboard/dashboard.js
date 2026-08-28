@@ -35,6 +35,18 @@ const commentsList = document.getElementById("comments-list");
 const commentsStatus = document.getElementById("comments-status");
 const commentsPendingBadge = document.getElementById("comments-pending-badge");
 const refreshComments = document.getElementById("refresh-comments");
+const newsletterPanel = document.getElementById("newsletter-panel");
+const newsletterStats = document.getElementById("newsletter-stats");
+const newsletterSubject = document.getElementById("newsletter-subject");
+const newsletterBody = document.getElementById("newsletter-body");
+const newsletterTestEmail = document.getElementById("newsletter-test-email");
+const newsletterTestSend = document.getElementById("newsletter-test-send");
+const newsletterSendAll = document.getElementById("newsletter-send-all");
+const newsletterStatus = document.getElementById("newsletter-status");
+const newsletterIssues = document.getElementById("newsletter-issues");
+const newsletterSubscribers = document.getElementById("newsletter-subscribers");
+const newsletterConfirmedBadge = document.getElementById("newsletter-confirmed-badge");
+const refreshNewsletter = document.getElementById("refresh-newsletter");
 const newEntry = document.getElementById("new-entry");
 const entryType = document.getElementById("entry-type");
 const entryTitle = document.getElementById("entry-title");
@@ -110,6 +122,7 @@ function setDashboardUnlocked(isUnlocked) {
     proposalPanel.hidden = !isUnlocked;
     entriesPanel.hidden = !isUnlocked;
     commentsPanel.hidden = !isUnlocked;
+    newsletterPanel.hidden = !isUnlocked;
     uploadPreview.hidden = !isUnlocked || !state.uploadedImage;
 }
 
@@ -555,6 +568,164 @@ async function moderateComment(id, action) {
     }
 }
 
+async function newsletterRequest(path, payload = null) {
+    const options = {
+        headers: { "X-Lethe-Access": state.accessCode }
+    };
+    if (payload) {
+        options.method = "POST";
+        options.headers["Content-Type"] = "application/json";
+        options.body = JSON.stringify(payload);
+    }
+    const response = await fetch(`${API_BASE}${path}`, options);
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        throw new Error(data.error || "Newsletter request failed.");
+    }
+    return data;
+}
+
+function setNewsletterStatus(text, type = "") {
+    newsletterStatus.textContent = text;
+    newsletterStatus.className = `push-status ${type}`.trim();
+}
+
+function renderNewsletterSummary(summary) {
+    const confirmed = summary?.confirmedCount || 0;
+    newsletterConfirmedBadge.textContent = `${confirmed} confirmed`;
+    newsletterStats.innerHTML = "";
+    [
+        ["Confirmed", summary?.confirmedCount || 0],
+        ["Pending confirmation", summary?.pendingCount || 0],
+        ["Unsubscribed", summary?.unsubscribedCount || 0],
+        ["Issues sent", summary?.issuesSent || 0]
+    ].forEach(([label, value]) => {
+        const item = document.createElement("span");
+        item.textContent = `${label}: ${value}`;
+        newsletterStats.appendChild(item);
+    });
+    if (summary?.lastSentAt) {
+        const last = document.createElement("span");
+        last.textContent = `Last sent: ${formatCommentDate(summary.lastSentAt)}`;
+        newsletterStats.appendChild(last);
+    }
+}
+
+function renderNewsletterIssues(issues) {
+    newsletterIssues.innerHTML = "";
+    if (!issues?.length) {
+        const empty = document.createElement("p");
+        empty.className = "newsletter-empty";
+        empty.textContent = "No issues sent yet.";
+        newsletterIssues.appendChild(empty);
+        return;
+    }
+
+    issues.forEach((issue) => {
+        const card = document.createElement("article");
+        card.className = "newsletter-issue-card";
+        const title = document.createElement("strong");
+        title.textContent = issue.subject;
+        const meta = document.createElement("span");
+        meta.textContent = `${issue.status} · ${issue.recipientCount || 0} recipient${issue.recipientCount === 1 ? "" : "s"} · ${formatCommentDate(issue.sentAt || issue.createdAt)}`;
+        card.append(title, document.createElement("br"), meta);
+        newsletterIssues.appendChild(card);
+    });
+}
+
+function renderNewsletterSubscribers(subscribers) {
+    newsletterSubscribers.innerHTML = "";
+    if (!subscribers?.length) {
+        const empty = document.createElement("p");
+        empty.className = "newsletter-empty";
+        empty.textContent = "No subscribers yet.";
+        newsletterSubscribers.appendChild(empty);
+        return;
+    }
+
+    subscribers.forEach((subscriber) => {
+        const row = document.createElement("div");
+        row.className = "newsletter-subscriber-row";
+        const line = document.createElement("span");
+        line.textContent = `${subscriber.email}${subscriber.name ? ` · ${subscriber.name}` : ""}`;
+        const meta = document.createElement("span");
+        meta.textContent = `${subscriber.status} · ${formatCommentDate(subscriber.updatedAt || subscriber.createdAt)}`;
+        row.append(line, meta);
+        newsletterSubscribers.appendChild(row);
+    });
+}
+
+async function loadNewsletterPanel() {
+    if (!state.accessCode) return;
+    setNewsletterStatus("Loading newsletter…");
+    try {
+        const [summary, subscribersData, issuesData] = await Promise.all([
+            newsletterRequest("/api/newsletter/summary"),
+            newsletterRequest("/api/newsletter/subscribers"),
+            newsletterRequest("/api/newsletter/issues")
+        ]);
+        renderNewsletterSummary(summary);
+        renderNewsletterSubscribers(subscribersData.subscribers);
+        renderNewsletterIssues(issuesData.issues);
+        setNewsletterStatus(`${summary.confirmedCount || 0} confirmed subscriber${summary.confirmedCount === 1 ? "" : "s"}.`, "success");
+    } catch (error) {
+        setNewsletterStatus(error.message, "error");
+    }
+}
+
+function currentNewsletterPayload(testEmail = "") {
+    return {
+        subject: newsletterSubject.value.trim(),
+        body: newsletterBody.value.trim(),
+        testEmail: testEmail.trim()
+    };
+}
+
+async function sendNewsletterTest() {
+    const testEmail = newsletterTestEmail.value.trim();
+    if (!testEmail) {
+        setNewsletterStatus("Enter a test email address first.", "error");
+        newsletterTestEmail.focus();
+        return;
+    }
+    newsletterTestSend.disabled = true;
+    setNewsletterStatus("Sending test…");
+    try {
+        const data = await newsletterRequest("/api/newsletter/send", currentNewsletterPayload(testEmail));
+        setNewsletterStatus(data.message || "Test sent.", "success");
+        await loadNewsletterPanel();
+    } catch (error) {
+        setNewsletterStatus(error.message, "error");
+    } finally {
+        newsletterTestSend.disabled = false;
+    }
+}
+
+async function sendNewsletterToAll() {
+    const payload = currentNewsletterPayload();
+    if (!payload.subject || payload.body.length < 20) {
+        setNewsletterStatus("Subject and body (at least 20 characters) are required.", "error");
+        return;
+    }
+    const countMatch = newsletterConfirmedBadge.textContent.match(/(\d+)/);
+    const recipientCount = countMatch ? Number(countMatch[1]) : 0;
+    const confirmedText = recipientCount === 1 ? "1 subscriber" : `${recipientCount} subscribers`;
+    const proceed = window.confirm(`Send "${payload.subject}" to ${confirmedText}? This cannot be undone.`);
+    if (!proceed) return;
+
+    newsletterSendAll.disabled = true;
+    setNewsletterStatus("Sending newsletter…");
+    try {
+        const data = await newsletterRequest("/api/newsletter/send", payload);
+        setNewsletterStatus(data.message || "Newsletter sent.", "success");
+        await loadNewsletterPanel();
+    } catch (error) {
+        setNewsletterStatus(error.message, "error");
+    } finally {
+        newsletterSendAll.disabled = false;
+    }
+}
+
 async function loadEntries() {
     if (!state.accessCode) return;
 
@@ -656,6 +827,7 @@ async function unlockDashboard(code, { silent = false } = {}) {
     renderVisits(data);
     await loadEntries();
     await loadCommentsModeration();
+    await loadNewsletterPanel();
     if (!silent) promptEl.focus();
 }
 
@@ -1101,6 +1273,9 @@ mapDetailClose.addEventListener("click", () => {
 
 refreshVisits.addEventListener("click", loadVisits);
 refreshComments.addEventListener("click", loadCommentsModeration);
+refreshNewsletter.addEventListener("click", loadNewsletterPanel);
+newsletterTestSend.addEventListener("click", sendNewsletterTest);
+newsletterSendAll.addEventListener("click", sendNewsletterToAll);
 
 if (state.accessCode) {
     accessCode.value = state.accessCode;

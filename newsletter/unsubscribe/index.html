@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unsubscribe | YOU ARE STILL INSIDE IT</title>
+    <link rel="icon" type="image/jpeg" href="../../assets/favicon-lethe.jpg">
+    <link rel="stylesheet" href="../../styles.css?v=newsletter-20260828">
+</head>
+<body class="newsletter-action-page">
+    <main class="newsletter-action">
+        <p class="kicker">field correspondence</p>
+        <h1>Unsubscribe</h1>
+        <p id="newsletter-action-status">Processing your request…</p>
+        <p><a href="../../">Return to the site</a></p>
+    </main>
+    <script>
+        (async function () {
+            const statusEl = document.getElementById("newsletter-action-status");
+            const token = new URLSearchParams(window.location.search).get("token") || "";
+            if (!token) {
+                statusEl.textContent = "This unsubscribe link is missing a token.";
+                return;
+            }
+            try {
+                const response = await fetch("https://mdi.io/lethe-dashboard/api/newsletter/unsubscribe", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token })
+                });
+                const data = await response.json().catch(() => ({}));
+                statusEl.textContent = data.message || data.error || "Could not unsubscribe.";
+            } catch {
+                statusEl.textContent = "Could not reach the subscription service.";
+            }
+        })();
+    </script>
+</body>
+</html>

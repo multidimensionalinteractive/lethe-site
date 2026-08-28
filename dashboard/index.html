@@ -6,7 +6,7 @@
     <title>LETHE Dashboard</title>
     <link rel="icon" type="image/jpeg" href="../assets/favicon-lethe.jpg">
     <link rel="apple-touch-icon" href="../assets/favicon-lethe.jpg">
-    <link rel="stylesheet" href="dashboard.css?v=field-comments-20260827">
+    <link rel="stylesheet" href="dashboard.css?v=newsletter-20260828">
 </head>
 <body>
     <main class="dashboard-shell">
@@ -133,6 +133,42 @@
                 <div class="comments-list" id="comments-list"></div>
             </section>
 
+            <section class="newsletter-panel" id="newsletter-panel" aria-label="Newsletter correspondence" hidden>
+                <div class="newsletter-header">
+                    <div>
+                        <p class="eyebrow">FIELD CORRESPONDENCE</p>
+                        <h3>Weekly newsletter <span class="newsletter-count-badge" id="newsletter-confirmed-badge"></span></h3>
+                    </div>
+                    <button class="ghost-button compact-button" id="refresh-newsletter" type="button">Refresh</button>
+                </div>
+                <p class="newsletter-copy">Write and send weekly notes to confirmed subscribers. Always send a test to yourself first. Signups require email confirmation before they appear in the send list.</p>
+                <div class="newsletter-stats" id="newsletter-stats"></div>
+                <form class="newsletter-compose" id="newsletter-compose">
+                    <label>
+                        <span>Subject</span>
+                        <input id="newsletter-subject" type="text" maxlength="200" placeholder="Field note — week of …">
+                    </label>
+                    <label>
+                        <span>Body</span>
+                        <textarea id="newsletter-body" rows="8" maxlength="12000" placeholder="Plain correspondence from the archive…"></textarea>
+                    </label>
+                    <label>
+                        <span>Test send to</span>
+                        <input id="newsletter-test-email" type="email" placeholder="feldpost@youarestillinsideit.com">
+                    </label>
+                    <div class="newsletter-actions">
+                        <button class="ghost-button" id="newsletter-test-send" type="button">Send test</button>
+                        <button id="newsletter-send-all" type="button">Send to subscribers</button>
+                    </div>
+                </form>
+                <p class="push-status" id="newsletter-status"></p>
+                <div class="newsletter-issues" id="newsletter-issues"></div>
+                <details class="newsletter-subscribers-wrap">
+                    <summary>Subscriber list</summary>
+                    <div class="newsletter-subscribers" id="newsletter-subscribers"></div>
+                </details>
+            </section>
+
             <section class="proposal-panel" id="proposal-panel" aria-label="Generated site preview" hidden>
                 <div class="proposal-header">
                     <div>
@@ -206,6 +242,6 @@
         </section>
     </main>
 
-    <script src="dashboard.js?v=field-comments-20260827"></script>
+    <script src="dashboard.js?v=newsletter-20260828"></script>
 </body>
 </html>
