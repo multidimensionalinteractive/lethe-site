@@ -188,6 +188,22 @@ a {
     color: var(--bone);
 }
 
+.button-quiet {
+    background: transparent;
+    border-color: var(--line);
+    color: var(--bone-dim);
+}
+
+.button-quiet:hover {
+    border-color: var(--rust-dim);
+    color: var(--bone);
+}
+
+.button-footer {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+}
+
 /* ---------- kickers ---------- */
 .kicker {
     margin: 0 0 1rem;
@@ -1506,6 +1522,54 @@ a {
         transparent;
 }
 
+/* ---------- bio / CV ---------- */
+.bio-block {
+    margin-top: clamp(2rem, 4vw, 2.75rem);
+    padding-top: clamp(1.25rem, 3vw, 1.75rem);
+    border-top: 1px solid var(--line);
+}
+
+.bio-heading {
+    margin: 0 0 1rem;
+    color: var(--bone);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+    letter-spacing: 0.14em;
+    line-height: 1.25;
+    text-transform: uppercase;
+}
+
+.bio-works-list {
+    margin: 0 0 1.25rem;
+    padding: 0;
+    list-style: none;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.98rem;
+    line-height: 1.65;
+}
+
+.bio-works-list li {
+    padding: 0.35rem 0;
+    border-bottom: 1px solid rgba(226, 216, 200, 0.08);
+}
+
+.bio-works-list li:last-child {
+    border-bottom: none;
+}
+
+.bio-related p {
+    margin-bottom: 0.75rem;
+}
+
+.bio-acquisitions .section-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+}
+
 /* ---------- footer ---------- */
 .site-footer {
     position: relative;
@@ -1553,21 +1617,108 @@ a {
     font-weight: 500;
 }
 
-.footer-support {
+.footer-acquisition {
     display: grid;
-    gap: 0.85rem;
+    gap: 1rem;
     justify-items: center;
+    max-width: 36rem;
     text-align: center;
 }
 
-.footer-support-label {
+.footer-acquisition-kicker {
     margin: 0;
     color: var(--muted-crimson);
     font-family: var(--font-struct);
-    font-size: clamp(14px, 1.8vw, 18px);
+    font-size: 11px;
     font-weight: 600;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
+}
+
+.footer-acquisition-title {
+    margin: 0;
+    color: var(--bone);
+    font-family: var(--font-display);
+    font-size: clamp(1.05rem, 2.6vw, 1.35rem);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1.35;
+    text-transform: uppercase;
+}
+
+.footer-acquisition-note {
+    margin: 0;
+    color: var(--bone-dim);
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    letter-spacing: 0.02em;
+    line-height: 1.65;
+    text-transform: none;
+}
+
+.footer-acquisition-actions {
+    display: grid;
+    gap: 0.85rem;
+    justify-items: center;
+}
+
+.footer-acquisition-secondary {
+    color: var(--sulfur-faint);
+    font-family: var(--font-struct);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-decoration: underline;
+    text-decoration-color: rgba(226, 216, 200, 0.35);
+    text-transform: uppercase;
+}
+
+.footer-acquisition-secondary:hover {
+    color: var(--bone);
+}
+
+.footer-patronage {
+    max-width: 22rem;
+    color: var(--bone-faint);
+    font-family: var(--font-struct);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.footer-patronage summary {
+    cursor: pointer;
+    list-style: none;
+    color: var(--bone-faint);
+    transition: color 180ms ease;
+}
+
+.footer-patronage summary::-webkit-details-marker {
+    display: none;
+}
+
+.footer-patronage summary:hover {
+    color: var(--bone-dim);
+}
+
+.footer-patronage-body {
+    display: grid;
+    gap: 0.75rem;
+    justify-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(226, 216, 200, 0.12);
+}
+
+.footer-patronage-copy {
+    margin: 0;
+    color: var(--bone-faint);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+    text-transform: none;
 }
 
 .footer-venmo {
@@ -1614,6 +1765,25 @@ a {
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: none;
+}
+
+.footer-venmo-compact .footer-venmo-qr {
+    width: 5.5rem;
+    height: 5.5rem;
+    padding: 0.35rem;
+}
+
+.footer-venmo-compact .footer-venmo-handle {
+    font-size: 13px;
+}
+
+.footer-venmo-label {
+    color: var(--muted-crimson);
+    font-family: var(--font-struct);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
 }
 
 @media (max-width: 720px) {
