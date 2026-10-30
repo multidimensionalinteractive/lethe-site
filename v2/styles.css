@@ -744,13 +744,13 @@ figcaption {
     color: var(--text);
 }
 
-.acquisition-list {
+.catalog-list {
     display: grid;
     gap: 0.8rem;
     margin-top: 2rem;
 }
 
-.acquisition-item {
+.catalog-item {
     display: grid;
     grid-template-columns: 7rem 1fr auto;
     gap: 1rem;
@@ -760,16 +760,16 @@ figcaption {
     font-size: 0.95rem;
 }
 
-.acquisition-item:last-child {
+.catalog-item:last-child {
     border-bottom: 1px solid var(--line);
 }
 
-.acquisition-item .meta-label {
+.catalog-item .meta-label {
     color: var(--rust);
     font-size: 0.68rem;
 }
 
-.acquisition-item .status {
+.catalog-item .status {
     color: var(--text-soft);
     font-family: var(--font-display);
     font-size: 0.68rem;
@@ -1056,7 +1056,7 @@ figcaption {
         text-align: left;
     }
 
-    .acquisition-item {
+    .catalog-item {
         grid-template-columns: 1fr;
         gap: 0.35rem;
     }
